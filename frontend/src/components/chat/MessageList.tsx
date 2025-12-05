@@ -79,7 +79,6 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading })
                     if (index % 2 === 1) {
                       // Code block
                       const lines = part.split('\n');
-                      const language = lines[0] || '';
                       const code = lines.slice(1).join('\n');
                       return (
                         <pre
