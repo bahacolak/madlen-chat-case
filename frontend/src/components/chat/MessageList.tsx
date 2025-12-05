@@ -38,17 +38,18 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading })
   }
 
   return (
-    <div className="h-full overflow-y-auto px-4 py-6 space-y-6 bg-zinc-950">
+    <div className="h-full overflow-y-auto px-4 py-6 flex flex-col gap-4 bg-zinc-950">
       {messages.map((message) => {
-        const isUser = message.role === 'user';
+        const isUser = message.role?.toLowerCase() === 'user';
 
         return (
           <div
             key={message.id}
-            className={`flex gap-4 ${isUser ? 'justify-end' : 'justify-start'}`}
+            className={`flex gap-3 max-w-[85%] lg:max-w-[70%] ${isUser ? 'self-end flex-row-reverse' : 'self-start'
+              }`}
           >
             {!isUser && (
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300">
                 <svg
                   className="w-5 h-5"
                   fill="none"
@@ -66,11 +67,10 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading })
             )}
 
             <div
-              className={`max-w-[85%] lg:max-w-[70%] rounded-2xl px-4 py-3 ${
-                isUser
-                  ? 'bg-zinc-800 text-zinc-100'
-                  : 'bg-zinc-900 text-zinc-200 border border-zinc-800'
-              }`}
+              className={`rounded-lg px-4 py-3 ${isUser
+                ? 'bg-indigo-600 text-white'
+                : 'bg-zinc-800 text-zinc-200'
+                }`}
             >
               {/* Code block detection */}
               {message.content.includes('```') ? (
@@ -107,7 +107,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading })
               )}
 
               {message.model && (
-                <div className="mt-2 text-xs text-zinc-500 flex items-center gap-1">
+                <div className={`mt-2 text-xs flex items-center gap-1 ${isUser ? 'text-indigo-200' : 'text-indigo-400'}`}>
                   <svg
                     className="w-3 h-3"
                     fill="none"
@@ -125,19 +125,13 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading })
                 </div>
               )}
             </div>
-
-            {isUser && (
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400">
-                {message.content.charAt(0).toUpperCase()}
-              </div>
-            )}
           </div>
         );
       })}
 
       {isLoading && (
-        <div className="flex justify-start gap-4">
-          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400">
+        <div className="flex gap-3 self-start">
+          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300">
             <svg
               className="w-5 h-5"
               fill="none"
@@ -152,7 +146,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading })
               />
             </svg>
           </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-3">
+          <div className="bg-zinc-800 rounded-lg px-4 py-3">
             <div className="flex items-center gap-2">
               <div className="flex gap-1">
                 <div className="w-2 h-2 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
