@@ -9,94 +9,7 @@ import { ModelSelector } from './ModelSelector';
 import { Sidebar } from './Sidebar';
 import { useAuth } from '@/contexts/AuthContext';
 
-// Mock data for testing
-const mockMessages: Message[] = [
-  {
-    id: 1,
-    role: 'user',
-    content: 'Merhaba! React ile nasıl bir state yönetimi yapabilirim?',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 2,
-    role: 'assistant',
-    content: `React'te state yönetimi için birkaç yaklaşım var:
 
-1. **useState Hook**: Basit component state'i için
-\`\`\`javascript
-const [count, setCount] = useState(0);
-\`\`\`
-
-2. **useReducer**: Karmaşık state logic için
-\`\`\`javascript
-const [state, dispatch] = useReducer(reducer, initialState);
-\`\`\`
-
-3. **Context API**: Global state için
-\`\`\`javascript
-const ThemeContext = createContext();
-\`\`\`
-
-4. **External Libraries**: Redux, Zustand, Jotai gibi
-
-Hangi yaklaşımı kullanmak istediğinize bağlı olarak değişir.`,
-    model: 'meta-llama/llama-3.2-3b-instruct:free',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 3,
-    role: 'user',
-    content: 'Teşekkürler! Context API ile bir örnek verebilir misin?',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 4,
-    role: 'assistant',
-    content: `Tabii! İşte Context API ile basit bir örnek:
-
-\`\`\`javascript
-// ThemeContext.js
-import { createContext, useContext, useState } from 'react';
-
-const ThemeContext = createContext();
-
-export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState('dark');
-  
-  return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
-};
-
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within ThemeProvider');
-  }
-  return context;
-};
-
-// Component'te kullanım
-const MyComponent = () => {
-  const { theme, setTheme } = useTheme();
-  
-  return (
-    <div className={theme === 'dark' ? 'bg-black' : 'bg-white'}>
-      <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
-        Toggle Theme
-      </button>
-    </div>
-  );
-};
-\`\`\`
-
-Bu şekilde theme state'ini tüm component'lerde kullanabilirsiniz!`,
-    model: 'meta-llama/llama-3.2-3b-instruct:free',
-    createdAt: new Date().toISOString(),
-  },
-];
 
 export const ChatInterface: React.FC = () => {
   const { logout, user } = useAuth();
@@ -106,12 +19,13 @@ export const ChatInterface: React.FC = () => {
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
   const [isLoadingModels, setIsLoadingModels] = useState(true);
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [useMockData, setUseMockData] = useState(false);
 
-  // Load models on mount
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   useEffect(() => {
     const loadModels = async () => {
       try {
@@ -138,7 +52,6 @@ export const ChatInterface: React.FC = () => {
     loadModels();
   }, []);
 
-  // Load conversations on mount
   useEffect(() => {
     const loadConversations = async () => {
       try {
@@ -159,9 +72,8 @@ export const ChatInterface: React.FC = () => {
     loadConversations();
   }, []);
 
-  // Load messages when conversation is selected
   useEffect(() => {
-    if (selectedConversationId && !useMockData) {
+    if (selectedConversationId) {
       const loadMessages = async () => {
         try {
           const conversation = await conversationService.getConversationById(selectedConversationId);
@@ -171,12 +83,10 @@ export const ChatInterface: React.FC = () => {
         }
       };
       loadMessages();
-    } else if (useMockData) {
-      setMessages(mockMessages);
     } else {
       setMessages([]);
     }
-  }, [selectedConversationId, useMockData]);
+  }, [selectedConversationId]);
 
   const handleSendMessage = async (messageText: string, image?: string) => {
     if (!selectedModel) {
@@ -184,50 +94,94 @@ export const ChatInterface: React.FC = () => {
       return;
     }
 
+    const userMessage: Message = {
+      id: Date.now(),
+      role: 'user',
+      content: messageText,
+      createdAt: new Date().toISOString(),
+      imageUrl: image ? `data:image/jpeg;base64,${image}` : undefined,
+    };
+
+    const streamingMessageId = Date.now() + 1;
+    const assistantMessage: Message = {
+      id: streamingMessageId,
+      role: 'assistant',
+      content: '',
+      model: selectedModel,
+      createdAt: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, userMessage, assistantMessage]);
     setIsLoading(true);
+    setIsThinking(true);
+    setErrorMessage(null);
+
+    let firstChunkReceived = false;
+
     try {
-      const response = await chatService.sendMessage({
-        message: messageText,
-        model: selectedModel,
-        conversationId: selectedConversationId || undefined,
-        image,
-      });
+      await chatService.sendMessageStream(
+        {
+          message: messageText,
+          model: selectedModel,
+          conversationId: selectedConversationId || undefined,
+          image,
+        },
+        (chunk: string) => {
+          if (!firstChunkReceived && chunk.trim().length > 0) {
+            setIsThinking(false);
+            setIsLoading(false);
+            firstChunkReceived = true;
+          }
 
-      const userMessage: Message = {
-        id: Date.now(),
-        role: 'user',
-        content: messageText,
-        createdAt: new Date().toISOString(),
-        imageUrl: image ? `data:image/jpeg;base64,${image}` : undefined,
-      };
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === streamingMessageId
+                ? { ...msg, content: msg.content + chunk }
+                : msg
+            )
+          );
+        },
+        (conversationId: number) => {
+          if (!selectedConversationId) {
+            setSelectedConversationId(conversationId);
+          }
+        },
+        async (_conversationId: number, messageId: number) => {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === streamingMessageId
+                ? { ...msg, id: messageId }
+                : msg
+            )
+          );
 
-      const assistantMessage: Message = {
-        id: response.messageId,
-        role: 'assistant',
-        content: response.response,
-        model: selectedModel,
-        createdAt: new Date().toISOString(),
-      };
+          const updatedConversations = await conversationService.getUserConversations();
+          setConversations(updatedConversations);
 
-      setMessages((prev) => [...prev, userMessage, assistantMessage]);
-
-      if (!selectedConversationId) {
-        setSelectedConversationId(response.conversationId);
-      }
-
-      const updatedConversations = await conversationService.getUserConversations();
-      setConversations(updatedConversations);
+          setIsLoading(false);
+          setIsThinking(false);
+        },
+        (error: string) => {
+          console.error('Streaming error:', error);
+          setIsThinking(false);
+          setMessages((prev) => prev.filter((msg) => msg.id !== streamingMessageId));
+          setErrorMessage(error);
+          setTimeout(() => setErrorMessage(null), 10000);
+          setTimeout(() => setErrorMessage(null), 10000);
+        }
+      );
     } catch (error: any) {
       console.error('Failed to send message:', error);
-      alert(error.response?.data?.message || 'Mesaj gönderilemedi. Lütfen tekrar deneyin.');
-    } finally {
+      setIsThinking(false);
       setIsLoading(false);
+      const errorMsg = error.response?.data?.message || error.message || 'Mesaj gönderilemedi. Lütfen tekrar deneyin.';
+      setErrorMessage(errorMsg);
+      setTimeout(() => setErrorMessage(null), 10000);
     }
   };
 
   const handleSelectConversation = (id: number) => {
     setSelectedConversationId(id);
-    setUseMockData(false);
   };
 
   const handleDeleteConversation = async (id: number) => {
@@ -248,16 +202,6 @@ export const ChatInterface: React.FC = () => {
   const handleCreateNewConversation = () => {
     setSelectedConversationId(null);
     setMessages([]);
-    setUseMockData(false);
-  };
-
-  const toggleMockData = () => {
-    setUseMockData(!useMockData);
-    if (!useMockData) {
-      setMessages(mockMessages);
-    } else {
-      setMessages([]);
-    }
   };
 
   return (
@@ -276,10 +220,8 @@ export const ChatInterface: React.FC = () => {
       />
 
       <div className="flex-1 flex flex-col min-w-0 lg:ml-0">
-        {/* Header with Model Selector */}
         <header className="bg-zinc-900 border-b border-zinc-800 px-4 py-3 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-4 flex-1">
-            {/* Mobile menu button */}
             <button
               onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
               className="lg:hidden p-2 rounded-lg hover:bg-zinc-800 transition-colors"
@@ -307,23 +249,58 @@ export const ChatInterface: React.FC = () => {
             />
           </div>
 
-          {/* Mock data toggle (for testing) */}
-          <button
-            onClick={toggleMockData}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              useMockData
-                ? 'bg-zinc-800 text-zinc-300'
-                : 'bg-zinc-800/50 text-zinc-500 hover:bg-zinc-800'
-            }`}
-            title="Toggle mock data"
-          >
-            {useMockData ? 'Mock: ON' : 'Mock: OFF'}
-          </button>
+
         </header>
 
-        {/* Main Chat Area */}
+        {errorMessage && (
+          <div className="bg-red-900/50 border-b border-red-800 px-4 py-3 flex items-center justify-between flex-shrink-0">
+            <div className="flex items-center gap-3 flex-1">
+              <svg
+                className="w-5 h-5 text-red-400 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-red-200">
+                  {errorMessage.includes('429') || errorMessage.includes('Too Many Requests')
+                    ? 'Rate Limit Aşıldı'
+                    : 'Hata'}
+                </p>
+                <p className="text-xs text-red-300/80 mt-0.5">{errorMessage}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setErrorMessage(null)}
+              className="text-red-400 hover:text-red-300 transition-colors p-1"
+              aria-label="Close error"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+        )}
+
         <div className="flex-1 flex flex-col overflow-hidden min-h-0">
-          <MessageList messages={messages} isLoading={isLoading} />
+          <MessageList messages={messages} isLoading={isLoading} isThinking={isThinking} />
           <MessageInput
             onSendMessage={handleSendMessage}
             isLoading={isLoading}
