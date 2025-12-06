@@ -29,7 +29,9 @@ const readStream = async (reader: ReadableStreamDefaultReader<Uint8Array>, callb
       if (line.startsWith('event:')) {
         currentEvent = line.slice(6).trim();
       } else if (line.startsWith('data:')) {
-        const data = line.slice(5).trim();
+        // Get data after 'data:' - keep everything as-is (spaces are content!)
+        const data = line.slice(5);
+
         if (!data) continue;
 
         if (currentEvent === 'error') {

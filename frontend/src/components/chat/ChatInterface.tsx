@@ -109,6 +109,7 @@ export const ChatInterface: React.FC = () => {
       content: '',
       model: selectedModel,
       createdAt: new Date().toISOString(),
+      isStreaming: true,
     };
 
     setMessages((prev) => [...prev, userMessage, assistantMessage]);
@@ -150,7 +151,7 @@ export const ChatInterface: React.FC = () => {
           setMessages((prev) =>
             prev.map((msg) =>
               msg.id === streamingMessageId
-                ? { ...msg, id: messageId }
+                ? { ...msg, id: messageId, isStreaming: false }
                 : msg
             )
           );

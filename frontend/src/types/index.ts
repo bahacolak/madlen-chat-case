@@ -49,6 +49,7 @@ export interface Message {
   model?: string;
   imageUrl?: string;
   createdAt: string;
+  isStreaming?: boolean;
 }
 
 export interface ModelInfo {
