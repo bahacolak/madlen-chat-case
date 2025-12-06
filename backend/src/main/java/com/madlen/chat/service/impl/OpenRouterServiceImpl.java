@@ -153,10 +153,14 @@ public class OpenRouterServiceImpl implements OpenRouterService {
                 .accept(MediaType.TEXT_EVENT_STREAM)
                 .retrieve()
                 .bodyToFlux(String.class)
-                .filter(line -> line.startsWith("data: ") && !line.contains("[DONE]"))
+                .filter(line -> !line.isEmpty() && !line.equals("[DONE]") && !line.contains("[DONE]"))
                 .map(line -> {
                     try {
-                        String jsonStr = line.substring(6); // Remove "data: " prefix
+                        // Handle both "data: {json}" and raw "{json}" formats
+                        String jsonStr = line.startsWith("data: ") ? line.substring(6) : line;
+                        if (jsonStr.isEmpty() || jsonStr.equals("[DONE]")) {
+                            return "";
+                        }
                         JsonNode root = objectMapper.readTree(jsonStr);
                         JsonNode choices = root.get("choices");
                         if (choices != null && choices.isArray() && choices.size() > 0) {
@@ -172,7 +176,6 @@ public class OpenRouterServiceImpl implements OpenRouterService {
                 })
                 .filter(content -> !content.isEmpty())
                 .onErrorResume(e -> {
-                    System.err.println("Streaming error: " + e.getMessage());
                     return Flux.error(new OpenRouterException("Streaming failed: " + e.getMessage(), e));
                 });
     }
