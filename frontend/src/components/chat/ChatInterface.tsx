@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { Message, ModelInfo, Conversation } from '@/types';
 import { chatService } from '@/services/chatService';
 import { modelService } from '@/services/modelService';
@@ -25,6 +25,7 @@ export const ChatInterface: React.FC = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const isStreamingRef = useRef(false);
 
   useEffect(() => {
     const loadModels = async () => {
@@ -37,7 +38,6 @@ export const ChatInterface: React.FC = () => {
         }
       } catch (error) {
         console.error('Failed to load models:', error);
-        // Use mock models if API fails
         setModels([
           { id: 'gpt-4', name: 'GPT-4', free: false },
           { id: 'gemini-pro', name: 'Gemini Pro', free: false },
@@ -73,6 +73,10 @@ export const ChatInterface: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (isStreamingRef.current) {
+      return;
+    }
+
     if (selectedConversationId) {
       const loadMessages = async () => {
         try {
@@ -116,6 +120,7 @@ export const ChatInterface: React.FC = () => {
     setIsLoading(true);
     setIsThinking(true);
     setErrorMessage(null);
+    isStreamingRef.current = true;
 
     let firstChunkReceived = false;
 
@@ -161,13 +166,14 @@ export const ChatInterface: React.FC = () => {
 
           setIsLoading(false);
           setIsThinking(false);
+          isStreamingRef.current = false;
         },
         (error: string) => {
           console.error('Streaming error:', error);
           setIsThinking(false);
           setMessages((prev) => prev.filter((msg) => msg.id !== streamingMessageId));
           setErrorMessage(error);
-          setTimeout(() => setErrorMessage(null), 10000);
+          isStreamingRef.current = false;
           setTimeout(() => setErrorMessage(null), 10000);
         }
       );
@@ -175,6 +181,7 @@ export const ChatInterface: React.FC = () => {
       console.error('Failed to send message:', error);
       setIsThinking(false);
       setIsLoading(false);
+      isStreamingRef.current = false;
       const errorMsg = error.response?.data?.message || error.message || 'Mesaj gönderilemedi. Lütfen tekrar deneyin.';
       setErrorMessage(errorMsg);
       setTimeout(() => setErrorMessage(null), 10000);
