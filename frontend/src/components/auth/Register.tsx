@@ -24,7 +24,7 @@ export const Register: React.FC = () => {
       await register(formData);
       navigate('/chat');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Kayıt başarısız. Lütfen tekrar deneyin.');
+      setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }

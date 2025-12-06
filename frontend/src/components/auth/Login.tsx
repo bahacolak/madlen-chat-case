@@ -23,7 +23,7 @@ export const Login: React.FC = () => {
       await login(formData);
       navigate('/chat');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Giriş başarısız. Lütfen tekrar deneyin.');
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
