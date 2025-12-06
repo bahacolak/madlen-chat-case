@@ -74,56 +74,50 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading, i
                 : 'bg-zinc-800 text-zinc-200'
                 }`}
             >
-              {/* Plain text during streaming, Markdown after complete */}
-              {message.isStreaming ? (
-                <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
-                  {message.content}
-                </div>
-              ) : (
-                <div key={`md-${message.id}`} className="prose prose-invert prose-sm max-w-none break-words">
-                  <ReactMarkdown
-                    components={{
-                      h1: ({ children }) => <h1 className="text-xl font-bold mb-2 mt-3">{children}</h1>,
-                      h2: ({ children }) => <h2 className="text-lg font-bold mb-2 mt-3">{children}</h2>,
-                      h3: ({ children }) => <h3 className="text-base font-bold mb-1 mt-2">{children}</h3>,
-                      ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
-                      ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
-                      li: ({ children }) => <li className="text-sm">{children}</li>,
-                      blockquote: ({ children }) => (
-                        <blockquote className="border-l-4 border-zinc-600 pl-3 italic text-zinc-400 my-2">
-                          {children}
-                        </blockquote>
-                      ),
-                      code: ({ className, children }) => {
-                        const isInline = !className;
-                        if (isInline) {
-                          return (
-                            <code className="bg-zinc-900 px-1.5 py-0.5 rounded text-sm font-mono text-indigo-300">
-                              {children}
-                            </code>
-                          );
-                        }
+              {/* Markdown for all messages - whitespace and newlines preserved in SSE parsing */}
+              <div className="prose prose-invert prose-sm max-w-none break-words">
+                <ReactMarkdown
+                  components={{
+                    h1: ({ children }) => <h1 className="text-xl font-bold mb-2 mt-3">{children}</h1>,
+                    h2: ({ children }) => <h2 className="text-lg font-bold mb-2 mt-3">{children}</h2>,
+                    h3: ({ children }) => <h3 className="text-base font-bold mb-1 mt-2">{children}</h3>,
+                    ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                    li: ({ children }) => <li className="text-sm">{children}</li>,
+                    blockquote: ({ children }) => (
+                      <blockquote className="border-l-4 border-zinc-600 pl-3 italic text-zinc-400 my-2">
+                        {children}
+                      </blockquote>
+                    ),
+                    code: ({ className, children }) => {
+                      const isInline = !className;
+                      if (isInline) {
                         return (
-                          <pre className="bg-zinc-950 rounded-lg p-4 overflow-x-auto my-2">
-                            <code className="text-sm font-mono text-zinc-300">{children}</code>
-                          </pre>
+                          <code className="bg-zinc-900 px-1.5 py-0.5 rounded text-sm font-mono text-indigo-300">
+                            {children}
+                          </code>
                         );
-                      },
-                      pre: ({ children }) => <>{children}</>,
-                      p: ({ children }) => <p className="mb-2 last:mb-0 text-sm leading-relaxed">{children}</p>,
-                      strong: ({ children }) => <strong className="font-bold text-zinc-100">{children}</strong>,
-                      em: ({ children }) => <em className="italic">{children}</em>,
-                      a: ({ href, children }) => (
-                        <a href={href} className="text-indigo-400 hover:underline" target="_blank" rel="noopener noreferrer">
-                          {children}
-                        </a>
-                      ),
-                    }}
-                  >
-                    {message.content}
-                  </ReactMarkdown>
-                </div>
-              )}
+                      }
+                      return (
+                        <pre className="bg-zinc-950 rounded-lg p-4 overflow-x-auto my-2">
+                          <code className="text-sm font-mono text-zinc-300">{children}</code>
+                        </pre>
+                      );
+                    },
+                    pre: ({ children }) => <>{children}</>,
+                    p: ({ children }) => <p className="mb-2 last:mb-0 text-sm leading-relaxed">{children}</p>,
+                    strong: ({ children }) => <strong className="font-bold text-zinc-100">{children}</strong>,
+                    em: ({ children }) => <em className="italic">{children}</em>,
+                    a: ({ href, children }) => (
+                      <a href={href} className="text-indigo-400 hover:underline" target="_blank" rel="noopener noreferrer">
+                        {children}
+                      </a>
+                    ),
+                  }}
+                >
+                  {message.content}
+                </ReactMarkdown>
+              </div>
 
               {message.imageUrl && (
                 <img
