@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import type { Message } from '@/types';
 
 interface MessageListProps {
@@ -77,6 +78,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading, i
               {/* Markdown for all messages - whitespace and newlines preserved in SSE parsing */}
               <div className="prose prose-invert prose-sm max-w-none break-words">
                 <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
                   components={{
                     h1: ({ children }) => <h1 className="text-xl font-bold mb-2 mt-3">{children}</h1>,
                     h2: ({ children }) => <h2 className="text-lg font-bold mb-2 mt-3">{children}</h2>,
@@ -112,6 +114,27 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading, i
                       <a href={href} className="text-indigo-400 hover:underline" target="_blank" rel="noopener noreferrer">
                         {children}
                       </a>
+                    ),
+                    // Table components for GFM tables
+                    table: ({ children }) => (
+                      <div className="overflow-x-auto my-3">
+                        <table className="min-w-full border-collapse border border-zinc-700 text-sm">
+                          {children}
+                        </table>
+                      </div>
+                    ),
+                    thead: ({ children }) => <thead className="bg-zinc-800">{children}</thead>,
+                    tbody: ({ children }) => <tbody>{children}</tbody>,
+                    tr: ({ children }) => <tr className="border-b border-zinc-700">{children}</tr>,
+                    th: ({ children }) => (
+                      <th className="px-3 py-2 text-left font-semibold text-zinc-200 border border-zinc-700">
+                        {children}
+                      </th>
+                    ),
+                    td: ({ children }) => (
+                      <td className="px-3 py-2 text-zinc-300 border border-zinc-700">
+                        {children}
+                      </td>
                     ),
                   }}
                 >
