@@ -87,7 +87,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                 handleSubmit(e);
               }
             }}
-            placeholder="Mesajınızı yazın... (Enter ile gönder, Shift+Enter ile satır)"
+            placeholder="Type your message... (Enter to send, Shift+Enter for new line)"
             rows={1}
             disabled={isLoading || disabled}
             className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-600 focus:border-transparent resize-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
@@ -128,7 +128,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             {isLoading ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-zinc-900"></div>
-                <span>Gönderiliyor...</span>
+                <span>Sending...</span>
               </>
             ) : (
               <>
@@ -145,7 +145,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                     d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
                   />
                 </svg>
-                <span>Gönder</span>
+                <span>Send</span>
               </>
             )}
           </button>

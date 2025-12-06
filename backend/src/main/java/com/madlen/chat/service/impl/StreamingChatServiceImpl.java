@@ -165,8 +165,8 @@ public class StreamingChatServiceImpl implements StreamingChatService {
             StringBuilder fullResponse,
             AtomicReference<Long> messageIdRef) {
 
-        String mockResponse = "Bu bir test streaming yanıtıdır. Mesajınız: \"" + testMessage + "\"\n\n" +
-                "Streaming özelliği çalışıyor! Mesajlar kelime kelime geliyor. ";
+        String mockResponse = "This is a test streaming response. Your message: \"" + testMessage + "\"\n\n" +
+                "Streaming feature is working! Messages are coming word by word. ";
         String[] words = mockResponse.split(" ");
 
         return Flux.fromIterable(Arrays.asList(words))
@@ -180,10 +180,10 @@ public class StreamingChatServiceImpl implements StreamingChatService {
                 })
                 .concatWith(Flux.just(ServerSentEvent.<String>builder()
                         .event("content")
-                        .data("\n\n✅ Streaming başarıyla test edildi!")
+                        .data("\n\n✅ Streaming successfully tested!")
                         .build()))
                 .doOnComplete(() -> {
-                    fullResponse.append("\n\n✅ Streaming başarıyla test edildi!");
+                    fullResponse.append("\n\n✅ Streaming successfully tested!");
                     saveAssistantMessageAndUpdateTitle(conversationId, fullResponse.toString(), model, testMessage,
                             messageIdRef);
                 });

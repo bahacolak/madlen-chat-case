@@ -33,8 +33,8 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading, i
               d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
             />
           </svg>
-          <p className="text-lg font-medium">Henüz mesaj yok</p>
-          <p className="text-sm mt-1">İlk mesajınızı göndererek başlayın!</p>
+          <p className="text-lg font-medium">No messages yet</p>
+          <p className="text-sm mt-1">Start by sending your first message!</p>
         </div>
       </div>
     );
@@ -226,7 +226,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading, i
                 <div className="w-2 h-2 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                 <div className="w-2 h-2 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
-              <span className="text-sm text-zinc-400">Yanıt bekleniyor...</span>
+              <span className="text-sm text-zinc-400">Waiting for response...</span>
             </div>
           </div>
         </div>

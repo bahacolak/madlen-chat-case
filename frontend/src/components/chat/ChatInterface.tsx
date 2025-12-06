@@ -94,7 +94,7 @@ export const ChatInterface: React.FC = () => {
 
   const handleSendMessage = async (messageText: string, image?: string) => {
     if (!selectedModel) {
-      alert('Lütfen bir model seçin');
+      alert('Please select a model');
       return;
     }
 
@@ -182,7 +182,7 @@ export const ChatInterface: React.FC = () => {
       setIsThinking(false);
       setIsLoading(false);
       isStreamingRef.current = false;
-      const errorMsg = error.response?.data?.message || error.message || 'Mesaj gönderilemedi. Lütfen tekrar deneyin.';
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to send message. Please try again.';
       setErrorMessage(errorMsg);
       setTimeout(() => setErrorMessage(null), 10000);
     }
@@ -203,7 +203,7 @@ export const ChatInterface: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to delete conversation:', error);
-      alert('Konuşma silinemedi. Lütfen tekrar deneyin.');
+      alert('Failed to delete conversation. Please try again.');
     }
   };
 
@@ -279,8 +279,8 @@ export const ChatInterface: React.FC = () => {
               <div className="flex-1">
                 <p className="text-sm font-medium text-red-200">
                   {errorMessage.includes('429') || errorMessage.includes('Too Many Requests')
-                    ? 'Rate Limit Aşıldı'
-                    : 'Hata'}
+                    ? 'Rate Limit Exceeded'
+                    : 'Error'}
                 </p>
                 <p className="text-xs text-red-300/80 mt-0.5">{errorMessage}</p>
               </div>

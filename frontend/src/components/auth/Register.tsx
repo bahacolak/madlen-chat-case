@@ -39,7 +39,7 @@ export const Register: React.FC = () => {
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
-        <span className="text-sm font-medium">Ana Sayfa</span>
+        <span className="text-sm font-medium">Home</span>
       </Link>
 
       <div className="max-w-md w-full bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-8">
@@ -59,8 +59,8 @@ export const Register: React.FC = () => {
               />
             </svg>
           </div>
-          <h2 className="text-3xl font-bold text-zinc-100 mb-2">Hesap Oluştur</h2>
-          <p className="text-sm text-zinc-400">Yeni bir hesap oluşturun</p>
+          <h2 className="text-3xl font-bold text-zinc-100 mb-2">Create Account</h2>
+          <p className="text-sm text-zinc-400">Create a new account</p>
         </div>
 
         {error && (
@@ -85,7 +85,7 @@ export const Register: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-zinc-300 mb-2">
-              Kullanıcı Adı
+              Username
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -110,7 +110,7 @@ export const Register: React.FC = () => {
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                 className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-600 focus:border-transparent transition-all"
-                placeholder="Kullanıcı adınızı girin"
+                placeholder="Enter your username"
                 disabled={isLoading}
               />
             </div>
@@ -143,7 +143,7 @@ export const Register: React.FC = () => {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-600 focus:border-transparent transition-all"
-                placeholder="E-posta adresinizi girin"
+                placeholder="Enter your email address"
                 disabled={isLoading}
               />
             </div>
@@ -151,7 +151,7 @@ export const Register: React.FC = () => {
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-zinc-300 mb-2">
-              Şifre
+              Password
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -176,7 +176,7 @@ export const Register: React.FC = () => {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="w-full pl-10 pr-12 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-600 focus:border-transparent transition-all"
-                placeholder="Şifrenizi girin"
+                placeholder="Enter your password"
                 disabled={isLoading}
               />
               <button
@@ -221,11 +221,11 @@ export const Register: React.FC = () => {
             {isLoading ? (
               <>
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-zinc-900"></div>
-                <span>Kayıt yapılıyor...</span>
+                <span>Signing up...</span>
               </>
             ) : (
               <>
-                <span>Kayıt Ol</span>
+                <span>Sign Up</span>
                 <svg
                   className="w-5 h-5"
                   fill="none"
@@ -246,12 +246,12 @@ export const Register: React.FC = () => {
 
         <div className="mt-6 pt-6 border-t border-zinc-800">
           <p className="text-center text-sm text-zinc-400">
-            Zaten hesabınız var mı?{' '}
+            Already have an account?{' '}
             <Link
               to="/login"
               className="text-zinc-100 hover:text-white font-medium transition-colors"
             >
-              Giriş Yap
+              Sign In
             </Link>
           </p>
         </div>

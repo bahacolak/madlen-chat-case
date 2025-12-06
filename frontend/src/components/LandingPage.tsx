@@ -31,13 +31,13 @@ export const LandingPage: React.FC = () => {
                 to="/login"
                 className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors"
               >
-                Giriş Yap
+                Sign In
               </Link>
               <Link
                 to="/register"
                 className="px-4 py-2 bg-zinc-100 text-zinc-900 rounded-lg hover:bg-white transition-colors font-medium text-sm"
               >
-                Başla
+                Get Started
               </Link>
             </div>
           </div>
@@ -49,23 +49,23 @@ export const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-zinc-100 via-zinc-300 to-zinc-100 bg-clip-text text-transparent">
-              AI ile Konuşun
+              Chat with AI
             </h1>
             <p className="text-xl md:text-2xl text-zinc-400 mb-8 max-w-3xl mx-auto">
-              OpenRouter üzerinden çeşitli AI modelleriyle sohbet edin. GPT-4, Gemini, Claude ve daha fazlası.
+              Chat with various AI models through OpenRouter. GPT-4, Gemini, Claude and more.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 to="/register"
                 className="px-8 py-4 bg-zinc-100 text-zinc-900 rounded-xl hover:bg-white transition-all font-semibold text-lg shadow-lg hover:shadow-xl"
               >
-                Ücretsiz Başla
+                Start Free
               </Link>
               <Link
                 to="/login"
                 className="px-8 py-4 bg-zinc-800 border border-zinc-700 text-zinc-100 rounded-xl hover:bg-zinc-700 transition-all font-semibold text-lg"
               >
-                Giriş Yap
+                Sign In
               </Link>
             </div>
           </div>
@@ -76,7 +76,7 @@ export const LandingPage: React.FC = () => {
               <div className="space-y-4">
                 <div className="flex gap-4 justify-end">
                   <div className="bg-zinc-800 rounded-2xl px-4 py-3 max-w-md">
-                    <p className="text-sm text-zinc-200">React ile nasıl state yönetimi yapabilirim?</p>
+                    <p className="text-sm text-zinc-200">How can I manage state in React?</p>
                   </div>
                 </div>
                 <div className="flex gap-4 justify-start">
@@ -97,7 +97,7 @@ export const LandingPage: React.FC = () => {
                   </div>
                   <div className="bg-zinc-800 rounded-2xl px-4 py-3 max-w-lg">
                     <p className="text-sm text-zinc-200">
-                      React'te state yönetimi için birkaç yaklaşım var: useState, useReducer, Context API ve external libraries...
+                      There are several approaches for state management in React: useState, useReducer, Context API and external libraries...
                     </p>
                   </div>
                 </div>
@@ -111,9 +111,9 @@ export const LandingPage: React.FC = () => {
       <section className="py-24 px-4 sm:px-6 lg:px-8 bg-zinc-900/50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-zinc-100">Özellikler</h2>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-zinc-100">Features</h2>
             <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
-              Modern AI sohbet deneyimi için ihtiyacınız olan her şey
+              Everything you need for a modern AI chat experience
             </p>
           </div>
 
@@ -134,9 +134,9 @@ export const LandingPage: React.FC = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2 text-zinc-100">Çoklu Model Desteği</h3>
+              <h3 className="text-xl font-semibold mb-2 text-zinc-100">Multiple Model Support</h3>
               <p className="text-zinc-400">
-                GPT-4, Gemini, Claude ve daha fazlası. İstediğiniz AI modelini seçin ve sohbet edin.
+                GPT-4, Gemini, Claude and more. Choose your preferred AI model and start chatting.
               </p>
             </div>
 
@@ -156,9 +156,9 @@ export const LandingPage: React.FC = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2 text-zinc-100">Geçmiş Yönetimi</h3>
+              <h3 className="text-xl font-semibold mb-2 text-zinc-100">History Management</h3>
               <p className="text-zinc-400">
-                Tüm konuşmalarınızı kaydedin, düzenleyin ve istediğiniz zaman geri dönün.
+                Save, edit and return to all your conversations anytime.
               </p>
             </div>
 
@@ -178,9 +178,9 @@ export const LandingPage: React.FC = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2 text-zinc-100">Multi-Modal Desteği</h3>
+              <h3 className="text-xl font-semibold mb-2 text-zinc-100">Multi-Modal Support</h3>
               <p className="text-zinc-400">
-                Resim yükleyin ve AI ile görsel içerik hakkında konuşun.
+                Upload images and discuss visual content with AI.
               </p>
             </div>
           </div>
@@ -191,9 +191,9 @@ export const LandingPage: React.FC = () => {
       <section className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-zinc-100">Nasıl Çalışır?</h2>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-zinc-100">How It Works?</h2>
             <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
-              Üç basit adımda başlayın
+              Get started in three simple steps
             </p>
           </div>
 
@@ -202,9 +202,9 @@ export const LandingPage: React.FC = () => {
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zinc-800 text-zinc-300 text-2xl font-bold mb-4">
                 1
               </div>
-              <h3 className="text-xl font-semibold mb-2 text-zinc-100">Hesap Oluştur</h3>
+              <h3 className="text-xl font-semibold mb-2 text-zinc-100">Create Account</h3>
               <p className="text-zinc-400">
-                Ücretsiz hesap oluşturun ve hemen başlayın
+                Create a free account and start immediately
               </p>
             </div>
 
@@ -212,9 +212,9 @@ export const LandingPage: React.FC = () => {
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zinc-800 text-zinc-300 text-2xl font-bold mb-4">
                 2
               </div>
-              <h3 className="text-xl font-semibold mb-2 text-zinc-100">Model Seç</h3>
+              <h3 className="text-xl font-semibold mb-2 text-zinc-100">Choose Model</h3>
               <p className="text-zinc-400">
-                İstediğiniz AI modelini seçin ve sohbeti başlatın
+                Select your preferred AI model and start the conversation
               </p>
             </div>
 
@@ -222,9 +222,9 @@ export const LandingPage: React.FC = () => {
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zinc-800 text-zinc-300 text-2xl font-bold mb-4">
                 3
               </div>
-              <h3 className="text-xl font-semibold mb-2 text-zinc-100">Sohbet Et</h3>
+              <h3 className="text-xl font-semibold mb-2 text-zinc-100">Start Chatting</h3>
               <p className="text-zinc-400">
-                Sorularınızı sorun ve AI'dan anında yanıt alın
+                Ask your questions and get instant responses from AI
               </p>
             </div>
           </div>
@@ -235,16 +235,16 @@ export const LandingPage: React.FC = () => {
       <section className="py-24 px-4 sm:px-6 lg:px-8 bg-zinc-900/50">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-zinc-100">
-            Hemen Başlayın
+            Get Started Now
           </h2>
           <p className="text-xl text-zinc-400 mb-8">
-            AI ile sohbet etmeye başlamak için ücretsiz hesap oluşturun
+            Create a free account to start chatting with AI
           </p>
           <Link
             to="/register"
             className="inline-block px-8 py-4 bg-zinc-100 text-zinc-900 rounded-xl hover:bg-white transition-all font-semibold text-lg shadow-lg hover:shadow-xl"
           >
-            Ücretsiz Başla
+            Start Free
           </Link>
         </div>
       </section>
@@ -272,7 +272,7 @@ export const LandingPage: React.FC = () => {
               <span className="text-lg font-semibold text-zinc-100">Madlen Chat</span>
             </div>
             <p className="text-sm text-zinc-500">
-              © 2024 Madlen Chat. Tüm hakları saklıdır.
+              © 2024 Madlen Chat. All rights reserved.
             </p>
           </div>
         </div>

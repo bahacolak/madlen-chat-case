@@ -86,7 +86,7 @@ export const chatService = {
     const callbacks: StreamCallbacks = { onChunk, onInit, onComplete, onError };
 
     if (!token) {
-      onError('Oturum bulunamadı. Lütfen tekrar giriş yapın.');
+      onError('Session not found. Please sign in again.');
       return;
     }
 
@@ -102,7 +102,7 @@ export const chatService = {
 
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
-          onError('Oturum süresi dolmuş veya geçersiz. Lütfen tekrar giriş yapın.');
+          onError('Session expired or invalid. Please sign in again.');
           return;
         }
         const errorText = await response.text().catch(() => '');

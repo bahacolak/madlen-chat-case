@@ -25,18 +25,18 @@ export const ConversationList: React.FC<ConversationListProps> = ({
           onClick={onCreateNew}
           className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors font-medium"
         >
-          + Yeni Konuşma
+          + New Conversation
         </button>
       </div>
       <div className="flex-1 overflow-y-auto min-h-0">
         {isLoading ? (
           <div className="p-4 text-center text-gray-500">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-sm">Yükleniyor...</p>
+            <p className="mt-2 text-sm">Loading...</p>
           </div>
         ) : conversations.length === 0 ? (
           <div className="p-4 text-center text-gray-500 text-sm">
-            Henüz konuşma yok
+            No conversations yet
           </div>
         ) : (
           <div className="divide-y divide-gray-200">
@@ -54,7 +54,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                       {conversation.title}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      {new Date(conversation.updatedAt).toLocaleDateString('tr-TR', {
+                      {new Date(conversation.updatedAt).toLocaleDateString('en-US', {
                         day: 'numeric',
                         month: 'short',
                         hour: '2-digit',
@@ -65,7 +65,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (window.confirm('Bu konuşmayı silmek istediğinize emin misiniz?')) {
+                      if (window.confirm('Are you sure you want to delete this conversation?')) {
                         onDeleteConversation(conversation.id);
                       }
                     }}

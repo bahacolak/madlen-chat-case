@@ -91,10 +91,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div className="flex items-center justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
-                    {conversation.title || 'Yeni Konuşma'}
+                    {conversation.title || 'New Conversation'}
                   </p>
                   <p className="text-xs text-zinc-500 mt-0.5">
-                    {new Date(conversation.updatedAt).toLocaleTimeString('tr-TR', {
+                    {new Date(conversation.updatedAt).toLocaleTimeString('en-US', {
                       hour: '2-digit',
                       minute: '2-digit',
                     })}
@@ -103,7 +103,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (window.confirm('Bu konuşmayı silmek istediğinize emin misiniz?')) {
+                    if (window.confirm('Are you sure you want to delete this conversation?')) {
                       onDeleteConversation(conversation.id);
                     }
                   }}
@@ -170,7 +170,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            Yeni Sohbet
+            New Chat
           </button>
         </div>
 
@@ -179,18 +179,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {isLoading ? (
             <div className="p-4 text-center text-zinc-400">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-zinc-400 mx-auto"></div>
-              <p className="mt-2 text-sm">Yükleniyor...</p>
+              <p className="mt-2 text-sm">Loading...</p>
             </div>
           ) : conversations.length === 0 ? (
             <div className="p-4 text-center text-zinc-500 text-sm">
-              Henüz konuşma yok
+              No conversations yet
             </div>
           ) : (
             <div className="px-2">
-              {renderConversationGroup('Bugün', groupedConversations.today)}
-              {renderConversationGroup('Dün', groupedConversations.yesterday)}
-              {renderConversationGroup('Önceki 7 Gün', groupedConversations.week)}
-              {renderConversationGroup('Daha Eski', groupedConversations.older)}
+              {renderConversationGroup('Today', groupedConversations.today)}
+              {renderConversationGroup('Yesterday', groupedConversations.yesterday)}
+              {renderConversationGroup('Previous 7 Days', groupedConversations.week)}
+              {renderConversationGroup('Older', groupedConversations.older)}
             </div>
           )}
         </div>
@@ -207,7 +207,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-zinc-200 truncate">
-                  {user?.username || 'Kullanıcı'}
+                  {user?.username || 'User'}
                 </p>
                 <p className="text-xs text-zinc-500 truncate">
                   {user?.email || ''}
@@ -252,7 +252,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                     />
                   </svg>
-                  Çıkış Yap
+                  Sign Out
                 </button>
               </div>
             )}
