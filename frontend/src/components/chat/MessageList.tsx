@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 import type { Message } from '@/types';
 
 interface MessageListProps {
@@ -73,31 +74,54 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading, i
                 : 'bg-zinc-800 text-zinc-200'
                 }`}
             >
-              {/* Code block detection */}
-              {message.content.includes('```') ? (
-                <div className="whitespace-pre-wrap break-words">
-                  {message.content.split('```').map((part, index) => {
-                    if (index % 2 === 1) {
-                      // Code block
-                      const lines = part.split('\n');
-                      const code = lines.slice(1).join('\n');
+              <div className="prose prose-invert prose-sm max-w-none break-words">
+                <ReactMarkdown
+                  components={{
+                    h1: ({ children }) => <h1 className="text-xl font-bold mb-2 mt-3">{children}</h1>,
+                    h2: ({ children }) => <h2 className="text-lg font-bold mb-2 mt-3">{children}</h2>,
+                    h3: ({ children }) => <h3 className="text-base font-bold mb-1 mt-2">{children}</h3>,
+                    ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                    li: ({ children }) => <li className="text-sm">{children}</li>,
+                    blockquote: ({ children }) => (
+                      <blockquote className="border-l-4 border-zinc-600 pl-3 italic text-zinc-400 my-2">
+                        {children}
+                      </blockquote>
+                    ),
+                    // Code
+                    code: ({ className, children }) => {
+                      const isInline = !className;
+                      if (isInline) {
+                        return (
+                          <code className="bg-zinc-900 px-1.5 py-0.5 rounded text-sm font-mono text-indigo-300">
+                            {children}
+                          </code>
+                        );
+                      }
                       return (
-                        <pre
-                          key={index}
-                          className="bg-zinc-950 rounded-lg p-4 overflow-x-auto my-2 text-sm font-mono"
-                        >
-                          <code className="text-zinc-300">{code}</code>
+                        <pre className="bg-zinc-950 rounded-lg p-4 overflow-x-auto my-2">
+                          <code className="text-sm font-mono text-zinc-300">{children}</code>
                         </pre>
                       );
-                    }
-                    return <span key={index}>{part}</span>;
-                  })}
-                </div>
-              ) : (
-                <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+                    },
+                    pre: ({ children }) => <>{children}</>,
+                    // Paragraphs
+                    p: ({ children }) => <p className="mb-2 last:mb-0 text-sm leading-relaxed">{children}</p>,
+                    // Strong/Bold
+                    strong: ({ children }) => <strong className="font-bold text-zinc-100">{children}</strong>,
+                    // Emphasis/Italic
+                    em: ({ children }) => <em className="italic">{children}</em>,
+                    // Links
+                    a: ({ href, children }) => (
+                      <a href={href} className="text-indigo-400 hover:underline" target="_blank" rel="noopener noreferrer">
+                        {children}
+                      </a>
+                    ),
+                  }}
+                >
                   {message.content}
-                </div>
-              )}
+                </ReactMarkdown>
+              </div>
 
               {message.imageUrl && (
                 <img
