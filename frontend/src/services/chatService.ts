@@ -32,7 +32,13 @@ const readStream = async (reader: ReadableStreamDefaultReader<Uint8Array>, callb
         // Get data after 'data:' - keep everything as-is (spaces are content!)
         const data = line.slice(5);
 
-        if (!data) continue;
+        // Empty data: means a newline in the content
+        if (data === '') {
+          if (currentEvent === 'content' || currentEvent === '') {
+            callbacks.onChunk('\n');
+          }
+          continue;
+        }
 
         if (currentEvent === 'error') {
           callbacks.onError(data);

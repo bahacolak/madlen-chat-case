@@ -74,13 +74,13 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading, i
                 : 'bg-zinc-800 text-zinc-200'
                 }`}
             >
-              {/* Render plain text during streaming, Markdown after complete */}
+              {/* Plain text during streaming, Markdown after complete */}
               {message.isStreaming ? (
                 <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
                   {message.content}
                 </div>
               ) : (
-                <div className="prose prose-invert prose-sm max-w-none break-words">
+                <div key={`md-${message.id}`} className="prose prose-invert prose-sm max-w-none break-words">
                   <ReactMarkdown
                     components={{
                       h1: ({ children }) => <h1 className="text-xl font-bold mb-2 mt-3">{children}</h1>,
