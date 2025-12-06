@@ -10,6 +10,10 @@ import com.madlen.chat.repository.MessageRepository;
 import com.madlen.chat.service.ConversationService;
 import com.madlen.chat.service.OpenRouterService;
 import com.madlen.chat.service.StreamingChatService;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Scope;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -31,45 +35,72 @@ public class StreamingChatServiceImpl implements StreamingChatService {
     private final ConversationService conversationService;
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
+    private final Tracer tracer;
 
     public StreamingChatServiceImpl(OpenRouterService openRouterService,
             ConversationService conversationService,
             ConversationRepository conversationRepository,
-            MessageRepository messageRepository) {
+            MessageRepository messageRepository,
+            Tracer tracer) {
         this.openRouterService = openRouterService;
         this.conversationService = conversationService;
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
+        this.tracer = tracer;
     }
 
     @Override
     public Flux<ServerSentEvent<String>> streamChat(ChatRequest request, Long userId) {
-        Conversation conversation = getOrCreateConversation(request, userId);
-        final Long conversationId = conversation.getId();
+        Span span = tracer.spanBuilder("streaming.chat")
+                .setAttribute("model", request.getModel())
+                .setAttribute("userId", userId)
+                .startSpan();
 
-        saveUserMessage(request, conversation);
+        try (Scope scope = span.makeCurrent()) {
+            Conversation conversation = getOrCreateConversation(request, userId);
+            final Long conversationId = conversation.getId();
+            span.setAttribute("conversationId", conversationId);
 
-        List<Map<String, String>> history = buildMessageHistory(conversationId);
+            saveUserMessage(request, conversation);
 
-        StringBuilder fullResponse = new StringBuilder();
-        AtomicReference<Long> messageIdRef = new AtomicReference<>();
+            List<Map<String, String>> history = buildMessageHistory(conversationId);
+            span.setAttribute("historySize", history.size());
 
-        Flux<ServerSentEvent<String>> initEvent = Flux.just(
-                ServerSentEvent.<String>builder()
-                        .event("init")
-                        .data("{\"conversationId\":" + conversationId + "}")
-                        .build());
+            StringBuilder fullResponse = new StringBuilder();
+            AtomicReference<Long> messageIdRef = new AtomicReference<>();
 
-        Flux<ServerSentEvent<String>> contentStream = createContentStream(
-                request, history, conversationId, fullResponse, messageIdRef);
+            Flux<ServerSentEvent<String>> initEvent = Flux.just(
+                    ServerSentEvent.<String>builder()
+                            .event("init")
+                            .data("{\"conversationId\":" + conversationId + "}")
+                            .build());
 
-        Flux<ServerSentEvent<String>> completeEvent = Mono.defer(() -> Mono.just(ServerSentEvent.<String>builder()
-                .event("complete")
-                .data("{\"messageId\":" + (messageIdRef.get() != null ? messageIdRef.get() : 0) + ",\"conversationId\":"
-                        + conversationId + "}")
-                .build())).flux();
+            Flux<ServerSentEvent<String>> contentStream = createContentStream(
+                    request, history, conversationId, fullResponse, messageIdRef);
 
-        return initEvent.concatWith(contentStream).concatWith(completeEvent);
+            Flux<ServerSentEvent<String>> completeEvent = Mono.defer(() -> Mono.just(ServerSentEvent.<String>builder()
+                    .event("complete")
+                    .data("{\"messageId\":" + (messageIdRef.get() != null ? messageIdRef.get() : 0)
+                            + ",\"conversationId\":"
+                            + conversationId + "}")
+                    .build())).flux();
+
+            return initEvent.concatWith(contentStream).concatWith(completeEvent)
+                    .doOnComplete(() -> {
+                        span.setStatus(StatusCode.OK);
+                        span.end();
+                    })
+                    .doOnError(error -> {
+                        span.setStatus(StatusCode.ERROR, error.getMessage());
+                        span.recordException(error);
+                        span.end();
+                    });
+        } catch (Exception e) {
+            span.setStatus(StatusCode.ERROR, e.getMessage());
+            span.recordException(e);
+            span.end();
+            throw e;
+        }
     }
 
     private Conversation getOrCreateConversation(ChatRequest request, Long userId) {
