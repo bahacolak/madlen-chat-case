@@ -104,7 +104,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
             Exception ex, HttpServletRequest request) {
-        // Log exception details for debugging
         ex.printStackTrace();
         System.err.println("Exception occurred: " + ex.getClass().getName());
         System.err.println("Message: " + ex.getMessage());

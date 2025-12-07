@@ -134,7 +134,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      {/* Mobile overlay */}
       {isMobileOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -142,13 +141,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col transition-transform duration-300 ease-in-out ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-        {/* Header */}
         <div className="p-4 border-b border-zinc-800 flex-shrink-0">
           <button
             onClick={() => {
@@ -174,7 +171,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         </div>
 
-        {/* Conversations List */}
         <div className="flex-1 overflow-y-auto min-h-0 py-4">
           {isLoading ? (
             <div className="p-4 text-center text-zinc-400">
@@ -195,7 +191,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
 
-        {/* User Profile & Settings */}
         <div className="p-4 border-t border-zinc-800 flex-shrink-0">
           <div className="relative">
             <button

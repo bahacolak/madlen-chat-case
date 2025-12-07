@@ -43,7 +43,6 @@ public class OpenRouterServiceImpl implements OpenRouterService {
 
         List<Map<String, Object>> requestMessages = new ArrayList<>();
 
-        // Add conversation history
         if (messages != null) {
             for (Map<String, String> msg : messages) {
                 Map<String, Object> msgMap = new HashMap<>();
@@ -53,7 +52,6 @@ public class OpenRouterServiceImpl implements OpenRouterService {
             }
         }
 
-        // Add current message
         Map<String, Object> currentMessage = new HashMap<>();
         currentMessage.put("role", "user");
 
@@ -91,7 +89,6 @@ public class OpenRouterServiceImpl implements OpenRouterService {
             String errorMessage = "OpenRouter API error: " + e.getStatusCode() + " " + e.getStatusText();
             if (e.getResponseBodyAsString() != null && !e.getResponseBodyAsString().isEmpty()) {
                 try {
-                    // Try to parse error response for better error message
                     Map<String, Object> errorBody = e.getResponseBodyAs(Map.class);
                     if (errorBody != null && errorBody.containsKey("error")) {
                         Object errorObj = errorBody.get("error");
@@ -103,7 +100,6 @@ public class OpenRouterServiceImpl implements OpenRouterService {
                         }
                     }
                 } catch (Exception parseEx) {
-                    // If parsing fails, use default message
                 }
             }
             throw new OpenRouterException(errorMessage + " from POST " + e.getRequest().getURI(), e);
@@ -121,7 +117,6 @@ public class OpenRouterServiceImpl implements OpenRouterService {
 
         List<Map<String, Object>> requestMessages = new ArrayList<>();
 
-        // Add conversation history
         if (messages != null) {
             for (Map<String, String> msg : messages) {
                 Map<String, Object> msgMap = new HashMap<>();
@@ -131,7 +126,6 @@ public class OpenRouterServiceImpl implements OpenRouterService {
             }
         }
 
-        // Add current message
         Map<String, Object> currentMessage = new HashMap<>();
         currentMessage.put("role", "user");
 
@@ -156,7 +150,6 @@ public class OpenRouterServiceImpl implements OpenRouterService {
                 .filter(line -> !line.isEmpty() && !line.equals("[DONE]") && !line.contains("[DONE]"))
                 .map(line -> {
                     try {
-                        // Handle both "data: {json}" and raw "{json}" formats
                         String jsonStr = line.startsWith("data: ") ? line.substring(6) : line;
                         if (jsonStr.isEmpty() || jsonStr.equals("[DONE]")) {
                             return "";
@@ -226,11 +219,9 @@ public class OpenRouterServiceImpl implements OpenRouterService {
                 return processedModels;
             }
         } catch (Exception e) {
-            // Fallback to hardcoded free models if API call fails
             System.err.println("Failed to fetch models from OpenRouter: " + e.getMessage());
         }
 
-        // Return verified free models that work (including vision models)
         List<Map<String, Object>> freeModels = new ArrayList<>();
         freeModels.add(Map.of("id", "meta-llama/llama-3.2-3b-instruct:free", "name", "Meta Llama 3.2 3B (Free)", "free",
                 true, "supportsVision", false));

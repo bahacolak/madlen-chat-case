@@ -75,7 +75,6 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading, i
                 : 'bg-zinc-800 text-zinc-200'
                 }`}
             >
-              {/* Markdown for all messages - whitespace and newlines preserved in SSE parsing */}
               <div className="prose prose-invert prose-sm max-w-none break-words">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
@@ -115,7 +114,6 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading, i
                         {children}
                       </a>
                     ),
-                    // Table components for GFM tables
                     table: ({ children }) => (
                       <div className="overflow-x-auto my-3">
                         <table className="min-w-full border-collapse border border-zinc-700 text-sm">

@@ -31,10 +31,8 @@ const readStream = async (reader: ReadableStreamDefaultReader<Uint8Array>, callb
       if (line.startsWith('event:')) {
         currentEvent = line.slice(6).trim();
       } else if (line.startsWith('data:')) {
-        // Get data after 'data:' - keep everything as-is (spaces are content!)
         const data = line.slice(5);
 
-        // Empty data: means a newline in the content
         if (data === '') {
           if (currentEvent === 'content' || currentEvent === '') {
             callbacks.onChunk('\n');
@@ -48,7 +46,6 @@ const readStream = async (reader: ReadableStreamDefaultReader<Uint8Array>, callb
           continue;
         }
 
-        // Try parsing as JSON for init/complete events
         if (data.startsWith('{')) {
           try {
             const json = JSON.parse(data);
@@ -61,7 +58,6 @@ const readStream = async (reader: ReadableStreamDefaultReader<Uint8Array>, callb
             currentEvent = '';
             continue;
           } catch {
-            // Not valid JSON, treat as content
           }
         }
 
@@ -120,7 +116,6 @@ export const chatService = {
       try {
         await readStream(reader, callbacks, state);
       } catch (readError) {
-        // If stream already completed successfully, ignore connection close errors
         if (!state.hasCompleted) {
           throw readError;
         }

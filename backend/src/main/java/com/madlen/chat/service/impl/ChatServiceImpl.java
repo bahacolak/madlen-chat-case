@@ -86,11 +86,9 @@ public class ChatServiceImpl implements ChatService {
             
             span.setAttribute("conversation.id", conversation.getId());
             
-            // Get conversation history
             List<Map<String, String>> history = buildMessageHistory(conversation.getId());
             span.setAttribute("history.size", history.size());
             
-            // Call OpenRouter API
             Span apiSpan = tracer.spanBuilder("openrouter.api_call")
                     .setAttribute("model", request.getModel())
                     .setAttribute("message.length", request.getMessage().length())
@@ -113,7 +111,6 @@ public class ChatServiceImpl implements ChatService {
                 apiSpan.end();
             }
             
-            // Save user message
             Span saveSpan = tracer.spanBuilder("db.save_message")
                     .setAttribute("role", "USER")
                     .startSpan();
@@ -138,7 +135,6 @@ public class ChatServiceImpl implements ChatService {
                 saveSpan.end();
             }
             
-            // Save assistant response
             Span saveResponseSpan = tracer.spanBuilder("db.save_message")
                     .setAttribute("role", "ASSISTANT")
                     .startSpan();
@@ -160,7 +156,6 @@ public class ChatServiceImpl implements ChatService {
                 saveResponseSpan.end();
             }
             
-            // Update conversation title if it's the first message
             List<Message> conversationMessages = conversation.getMessages();
             if (conversation.getTitle().equals("New Conversation") && 
                 (conversationMessages == null || conversationMessages.size() <= 2)) {

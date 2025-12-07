@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 export const LandingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      {/* Navigation */}
       <nav className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -44,7 +43,6 @@ export const LandingPage: React.FC = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
       <section className="relative overflow-hidden pt-20 pb-32 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
@@ -67,10 +65,9 @@ export const LandingPage: React.FC = () => {
               >
                 Sign In
               </Link>
-            </div>
           </div>
+        </div>
 
-          {/* Hero Image/Preview */}
           <div className="mt-16 relative">
             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-2xl max-w-4xl mx-auto">
               <div className="space-y-4">
@@ -107,7 +104,6 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Features Section */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 bg-zinc-900/50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -187,7 +183,6 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* How It Works Section */}
       <section className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -231,7 +226,6 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 bg-zinc-900/50">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-zinc-100">
@@ -249,7 +243,6 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="border-t border-zinc-800 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">

@@ -147,7 +147,6 @@ public class StreamingChatServiceImpl implements StreamingChatService {
             StringBuilder fullResponse,
             AtomicReference<Long> messageIdRef) {
 
-        // Check if test mode is enabled (for testing without API calls)
         boolean testMode = request.getMessage() != null && request.getMessage().startsWith("/test ");
         String testMessage = testMode ? request.getMessage().substring(6) : null;
 
@@ -212,7 +211,6 @@ public class StreamingChatServiceImpl implements StreamingChatService {
                 })
                 .onErrorResume(error -> {
                     String errorMessage = error.getMessage();
-                    // Check for rate limit error
                     if (errorMessage != null
                             && (errorMessage.contains("429") || errorMessage.toLowerCase().contains("rate limit")
                                     || errorMessage.toLowerCase().contains("too many requests"))) {

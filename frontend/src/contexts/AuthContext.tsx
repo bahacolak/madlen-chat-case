@@ -19,7 +19,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in
     const storedUser = authService.getUser();
     if (storedUser) {
       setUser(storedUser);

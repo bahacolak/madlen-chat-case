@@ -134,7 +134,6 @@ export const ChatInterface: React.FC = () => {
           image,
         },
         (chunk: string) => {
-          // Clean HTML br tags from model responses
           const cleanedChunk = chunk.replace(/<br\s*\/?>/gi, '\n');
 
           if (!firstChunkReceived && cleanedChunk.trim().length > 0) {

@@ -104,7 +104,6 @@ public class ConversationServiceImpl implements ConversationService {
     @Override
     public Page<ConversationDto.MessageDto> getConversationMessages(Long conversationId, Long userId,
             Pageable pageable) {
-        // Verify user owns the conversation
         conversationRepository.findByIdAndUserId(conversationId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Conversation", conversationId));
 

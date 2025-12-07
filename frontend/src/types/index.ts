@@ -1,4 +1,3 @@
-// API Response Types
 export interface AuthResponse {
   token: string;
   user: User;

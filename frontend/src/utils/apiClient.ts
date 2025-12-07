@@ -14,7 +14,6 @@ class ApiClient {
       },
     });
 
-    // Request interceptor - Add JWT token to requests
     this.client.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
         const token = localStorage.getItem('token');
@@ -28,15 +27,12 @@ class ApiClient {
       }
     );
 
-    // Response interceptor - Handle errors globally
     this.client.interceptors.response.use(
       (response) => response,
       (error) => {
         if (error.response?.status === 401) {
-          // Skip redirect if already on login or register page (for auth errors)
           const currentPath = window.location.pathname;
           if (currentPath !== '/login' && currentPath !== '/register') {
-            // Unauthorized - clear token and redirect to login
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = '/login';
