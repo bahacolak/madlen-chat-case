@@ -55,6 +55,23 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
     
+    /**
+     * CORS (Cross-Origin Resource Sharing) konfigürasyonu.
+     * 
+     * NOT: Bu bir case study projesi olduğu için wildcard (*) kullanılmıştır.
+     * Production ortamında güvenlik riski oluşturur çünkü herhangi bir origin'den
+     * gelen isteklere izin verir. Production'da şu şekilde kullanılmalıdır:
+     * 
+     * configuration.setAllowedOrigins(Arrays.asList(
+     *     "http://localhost:3000",           // Development frontend
+     *     "https://yourdomain.com",           // Production frontend
+     *     "https://www.yourdomain.com"        // Production www subdomain
+     * ));
+     * 
+     * Veya environment variable ile:
+     * String allowedOrigins = env.getProperty("CORS_ALLOWED_ORIGINS");
+     * configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
