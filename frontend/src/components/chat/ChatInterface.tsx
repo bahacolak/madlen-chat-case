@@ -3,6 +3,7 @@ import type { Message, ModelInfo, Conversation } from '@/types';
 import { chatService } from '@/services/chatService';
 import { modelService } from '@/services/modelService';
 import { conversationService } from '@/services/conversationService';
+import { isImageGenerationModel } from '@/config/models';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { ModelSelector } from './ModelSelector';
@@ -317,7 +318,7 @@ export const ChatInterface: React.FC = () => {
             isLoading={isLoading}
             disabled={!selectedModel}
             selectedModelSupportsVision={models.find(m => m.id === selectedModel)?.supportsVision ?? false}
-            selectedModelGeneratesImages={selectedModel?.toLowerCase().includes('gemma') ?? false}
+            selectedModelGeneratesImages={isImageGenerationModel(selectedModel)}
           />
         </div>
       </div>
