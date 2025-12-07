@@ -12,6 +12,18 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.io.IOException;
 
+/**
+ * Rate limiting kontrolü için interceptor.
+ * Kullanıcı başına dakikada 10 istek limiti uygular.
+ * 
+ * NOT: Bu bir case study projesi olduğu için Fail-Open Pattern kullanılıyor.
+ * Exception durumunda request geçiyor, bu production'da güvenlik riski oluşturur.
+ * 
+ * Fail-Open Pattern: Servis çalışmazsa istekler geçer (kullanıcı deneyimi öncelikli)
+ * Fail-Secure Pattern: Servis çalışmazsa istekler engellenir (güvenlik öncelikli)
+ * 
+ * Production'da Fail-Secure Pattern kullanılmalıdır.
+ */
 @Component
 public class RateLimitInterceptor implements HandlerInterceptor {
 
@@ -46,6 +58,24 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
                 rateLimitService.recordRequest(userId);
             } catch (Exception e) {
+                // NOT: Fail-Open Pattern kullanılıyor (case study için)
+                // Exception durumunda request geçiyor - bu güvenlik riski oluşturur.
+                // 
+                // Sorun: Rate limiting servisi çalışmazsa (Redis down, network error, vs.)
+                // tüm istekler geçiyor ve rate limiting bypass edilebiliyor.
+                // 
+                // Production'da şu şekilde düzeltilmeli:
+                // 
+                // 1. Fail-Secure Pattern (Önerilen):
+                //    - Exception durumunda request'i engelle
+                //    - Rate limiting servisi çalışmıyorsa güvenlik öncelikli olmalı
+                //    logger.error("Rate limit check failed, blocking request for security", e);
+                //    response.setStatus(503); // Service Unavailable
+                //    return false;
+                // 
+                // 2. Veya en azından log seviyesini ERROR'a yükselt:
+                //    logger.error("Rate limit check failed, allowing request: {}", e.getMessage(), e);
+                //    (Mevcut kod: logger.debug - çok düşük seviye, production'da görülmez)
                 logger.debug("Rate limit check failed, allowing request: {}", e.getMessage());
             }
         }
