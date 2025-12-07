@@ -19,6 +19,25 @@ spring:
   
   security:
     jwt:
+      # NOT: JWT Secret için default değer kullanılıyor (case study için)
+      # JWT token'ların imzalanması ve doğrulanması için kullanılan gizli anahtar.
+      # Bu secret bilgisi güvenlik açısından kritik öneme sahiptir çünkü:
+      # - Secret bilinirse, saldırganlar sahte token üretebilir
+      # - Zayıf secret kullanımı brute-force saldırılarına açıktır
+      # 
+      # Production ortamında MUTLAKA güçlü bir secret kullanılmalıdır:
+      # 1. Minimum 256 bit (32 karakter), önerilen 512 bit (64 karakter)
+      # 2. Rastgele, tahmin edilemez karakterler içermeli
+      # 3. Environment variable olarak set edilmeli (JWT_SECRET)
+      # 
+      # Güçlü secret üretmek için:
+      # openssl rand -base64 64
+      # veya
+      # openssl rand -hex 32
+      # 
+      # Production'da startup validation eklenmeli:
+      # @PostConstruct method ile JWT_SECRET kontrol edilmeli,
+      # default değer kullanılıyorsa uygulama başlatılmamalı
       secret: ${JWT_SECRET:defaultSecretKeyForDevelopmentOnlyChangeInProduction}
       expiration: ${JWT_EXPIRATION:86400000}
   

@@ -11,6 +11,19 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
+/**
+ * JWT Token üretimi, doğrulama ve yönetimi için kullanılan component.
+ * 
+ * NOT: Bu bir case study projesi olduğu için JWT secret default değer kullanılıyor.
+ * Production ortamında güvenlik riski oluşturur çünkü:
+ * - Zayıf secret kullanımı token'ların kolayca kırılmasına yol açar
+ * - Default secret bilinirse sahte token üretilebilir
+ * 
+ * Production'da:
+ * - JWT_SECRET environment variable zorunlu olmalı
+ * - Minimum 256 bit (32 karakter) güçlü secret kullanılmalı
+ * - Startup'ta secret kontrolü yapılmalı (@PostConstruct ile)
+ */
 @Component
 public class JwtTokenProvider {
     
