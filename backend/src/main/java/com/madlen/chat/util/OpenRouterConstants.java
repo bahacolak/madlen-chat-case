@@ -1,12 +1,8 @@
 package com.madlen.chat.util;
 
-/**
- * OpenRouter API related constants
- */
 public final class OpenRouterConstants {
     
     private OpenRouterConstants() {
-        // Utility class - prevent instantiation
     }
     
     public static final String CHAT_COMPLETIONS_ENDPOINT = "/chat/completions";

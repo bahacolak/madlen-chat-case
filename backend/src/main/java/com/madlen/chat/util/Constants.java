@@ -1,12 +1,8 @@
 package com.madlen.chat.util;
 
-/**
- * Application-wide constants
- */
 public final class Constants {
     
     private Constants() {
-        // Utility class - prevent instantiation
     }
     
     public static final String DEFAULT_CONVERSATION_TITLE = "New Conversation";

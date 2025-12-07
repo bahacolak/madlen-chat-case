@@ -10,25 +10,11 @@ import com.madlen.chat.service.ConversationService;
 
 import java.util.List;
 
-/**
- * Utility class for conversation-related operations
- */
 public final class ConversationHelper {
     
     private ConversationHelper() {
-        // Utility class - prevent instantiation
     }
     
-    /**
-     * Gets an existing conversation or creates a new one
-     * 
-     * @param request The chat request containing optional conversationId
-     * @param userId The user ID
-     * @param conversationRepository Repository for conversation operations
-     * @param conversationService Service for creating new conversations
-     * @return The conversation (existing or newly created)
-     * @throws ResourceNotFoundException if conversationId is provided but not found
-     */
     public static Conversation getOrCreateConversation(
             ChatRequest request,
             Long userId,
@@ -45,13 +31,6 @@ public final class ConversationHelper {
         }
     }
     
-    /**
-     * Updates conversation title if it's still the default title and conversation is new
-     * 
-     * @param conversation The conversation to update
-     * @param titleSource The source text to use for the title (usually the first user message)
-     * @param conversationRepository Repository for saving the conversation
-     */
     public static void updateConversationTitleIfNeeded(
             Conversation conversation,
             String titleSource,

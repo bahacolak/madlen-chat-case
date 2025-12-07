@@ -1,8 +1,4 @@
-/**
- * Application-wide constants
- */
-
-export const ERROR_TIMEOUT = 10000; // 10 seconds
+export const ERROR_TIMEOUT = 10000;
 
 export const DEFAULT_CONVERSATION_TITLE = 'New Conversation';
 export const MAX_TITLE_LENGTH = 50;

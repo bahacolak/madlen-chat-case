@@ -5,25 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Utility class for building OpenRouter API request bodies
- */
 public final class OpenRouterRequestBuilder {
     
     private OpenRouterRequestBuilder() {
-        // Utility class - prevent instantiation
     }
     
-    /**
-     * Builds request body for OpenRouter chat completions API
-     * 
-     * @param message The current user message
-     * @param model The model to use
-     * @param history Previous conversation messages (can be null or empty)
-     * @param imageBase64 Optional base64 encoded image (without prefix)
-     * @param stream Whether to enable streaming
-     * @return Map representing the request body
-     */
     public static Map<String, Object> buildChatRequest(
             String message,
             String model,
@@ -39,7 +25,6 @@ public final class OpenRouterRequestBuilder {
         
         List<Map<String, Object>> requestMessages = new ArrayList<>();
         
-        // Add conversation history
         if (history != null) {
             for (Map<String, String> msg : history) {
                 Map<String, Object> msgMap = new HashMap<>();
@@ -49,7 +34,6 @@ public final class OpenRouterRequestBuilder {
             }
         }
         
-        // Add current message
         Map<String, Object> currentMessage = new HashMap<>();
         currentMessage.put("role", OpenRouterConstants.ROLE_USER);
         
