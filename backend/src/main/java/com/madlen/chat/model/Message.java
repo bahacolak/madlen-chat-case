@@ -8,7 +8,10 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "messages")
+@Table(name = "messages", indexes = {
+        @Index(name = "idx_message_conversation_id", columnList = "conversation_id"),
+        @Index(name = "idx_message_conversation_created", columnList = "conversation_id, created_at ASC")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

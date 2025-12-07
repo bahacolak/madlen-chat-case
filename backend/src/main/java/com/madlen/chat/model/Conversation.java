@@ -9,7 +9,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "conversations")
+@Table(name = "conversations", indexes = {
+        @Index(name = "idx_conversation_user_id", columnList = "user_id"),
+        @Index(name = "idx_conversation_user_updated", columnList = "user_id, updated_at DESC")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -45,4 +48,3 @@ public class Conversation {
         updatedAt = LocalDateTime.now();
     }
 }
-
