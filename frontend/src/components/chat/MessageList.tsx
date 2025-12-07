@@ -4,6 +4,24 @@ import remarkGfm from 'remark-gfm';
 import { BotIcon, ChatIcon } from '@/components/icons/IconComponents';
 import type { Message } from '@/types';
 
+/**
+ * NOT: XSS (Cross-Site Scripting) Güvenliği
+ * 
+ * Bu component ReactMarkdown kullanıyor, bu nedenle XSS koruması mevcut:
+ * ReactMarkdown otomatik olarak HTML'i escape eder
+ * Sadece güvenli markdown syntax'ını render eder
+ * Script tag'leri ve event handler'lar otomatik olarak temizlenir
+ * 
+ * Ancak dikkat edilmesi gerekenler:
+ * - Link'lerde rel="noopener noreferrer" kullanılıyor (güvenli)
+ * - Image src'leri backend'den geldiği için güvenli
+ * - Custom component'ler güvenli şekilde tanımlanmış
+ * 
+ * Production'da ekstra güvenlik için:
+ * - DOMPurify gibi sanitization library kullanılabilir (şu an gerekli değil)
+ * - Content Security Policy (CSP) header'ları eklenebilir
+ * - Backend'de de input sanitization yapılmalı (defense in depth)
+ */
 interface MessageListProps {
   messages: Message[];
   isLoading?: boolean;
