@@ -4,6 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.madlen.chat.exception.OpenRouterException;
 import com.madlen.chat.service.OpenRouterService;
+import com.madlen.chat.util.OpenRouterConstants;
+import com.madlen.chat.util.OpenRouterRequestBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -12,14 +16,14 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
 public class OpenRouterServiceImpl implements OpenRouterService {
 
+    private static final Logger logger = LoggerFactory.getLogger(OpenRouterServiceImpl.class);
+    
     private final WebClient webClient;
     private final String apiKey;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -31,45 +35,19 @@ public class OpenRouterServiceImpl implements OpenRouterService {
                 .baseUrl(baseUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
-                .defaultHeader("HTTP-Referer", "http://localhost:8080")
-                .defaultHeader("X-Title", "Chat Application")
+                .defaultHeader(OpenRouterConstants.HEADER_HTTP_REFERER, OpenRouterConstants.DEFAULT_HTTP_REFERER)
+                .defaultHeader(OpenRouterConstants.HEADER_X_TITLE, OpenRouterConstants.DEFAULT_X_TITLE)
                 .build();
     }
 
     @Override
     public String sendChatMessage(String message, String model, List<Map<String, String>> messages, String image) {
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", model);
-
-        List<Map<String, Object>> requestMessages = new ArrayList<>();
-
-        if (messages != null) {
-            for (Map<String, String> msg : messages) {
-                Map<String, Object> msgMap = new HashMap<>();
-                msgMap.put("role", msg.get("role"));
-                msgMap.put("content", msg.get("content"));
-                requestMessages.add(msgMap);
-            }
-        }
-
-        Map<String, Object> currentMessage = new HashMap<>();
-        currentMessage.put("role", "user");
-
-        if (image != null && !image.isEmpty()) {
-            List<Map<String, Object>> contentList = new ArrayList<>();
-            contentList.add(Map.of("type", "text", "text", message));
-            contentList.add(Map.of("type", "image_url", "image_url", Map.of("url", "data:image/jpeg;base64," + image)));
-            currentMessage.put("content", contentList);
-        } else {
-            currentMessage.put("content", message);
-        }
-
-        requestMessages.add(currentMessage);
-        requestBody.put("messages", requestMessages);
+        Map<String, Object> requestBody = OpenRouterRequestBuilder.buildChatRequest(
+                message, model, messages, image, false);
 
         try {
             Map<String, Object> response = webClient.post()
-                    .uri("/chat/completions")
+                    .uri(OpenRouterConstants.CHAT_COMPLETIONS_ENDPOINT)
                     .bodyValue(requestBody)
                     .retrieve()
                     .bodyToMono(Map.class)
@@ -100,6 +78,7 @@ public class OpenRouterServiceImpl implements OpenRouterService {
                         }
                     }
                 } catch (Exception parseEx) {
+                    logger.warn("Failed to parse error response body: {}", parseEx.getMessage());
                 }
             }
             throw new OpenRouterException(errorMessage + " from POST " + e.getRequest().getURI(), e);
@@ -111,47 +90,24 @@ public class OpenRouterServiceImpl implements OpenRouterService {
     @Override
     public Flux<String> streamChatMessage(String message, String model, List<Map<String, String>> messages,
             String image) {
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", model);
-        requestBody.put("stream", true);
-
-        List<Map<String, Object>> requestMessages = new ArrayList<>();
-
-        if (messages != null) {
-            for (Map<String, String> msg : messages) {
-                Map<String, Object> msgMap = new HashMap<>();
-                msgMap.put("role", msg.get("role"));
-                msgMap.put("content", msg.get("content"));
-                requestMessages.add(msgMap);
-            }
-        }
-
-        Map<String, Object> currentMessage = new HashMap<>();
-        currentMessage.put("role", "user");
-
-        if (image != null && !image.isEmpty()) {
-            List<Map<String, Object>> contentList = new ArrayList<>();
-            contentList.add(Map.of("type", "text", "text", message));
-            contentList.add(Map.of("type", "image_url", "image_url", Map.of("url", "data:image/jpeg;base64," + image)));
-            currentMessage.put("content", contentList);
-        } else {
-            currentMessage.put("content", message);
-        }
-
-        requestMessages.add(currentMessage);
-        requestBody.put("messages", requestMessages);
+        Map<String, Object> requestBody = OpenRouterRequestBuilder.buildChatRequest(
+                message, model, messages, image, true);
 
         return webClient.post()
-                .uri("/chat/completions")
+                .uri(OpenRouterConstants.CHAT_COMPLETIONS_ENDPOINT)
                 .bodyValue(requestBody)
                 .accept(MediaType.TEXT_EVENT_STREAM)
                 .retrieve()
                 .bodyToFlux(String.class)
-                .filter(line -> !line.isEmpty() && !line.equals("[DONE]") && !line.contains("[DONE]"))
+                .filter(line -> !line.isEmpty() 
+                        && !line.equals(OpenRouterConstants.STREAM_DONE_MARKER) 
+                        && !line.contains(OpenRouterConstants.STREAM_DONE_MARKER))
                 .map(line -> {
                     try {
-                        String jsonStr = line.startsWith("data: ") ? line.substring(6) : line;
-                        if (jsonStr.isEmpty() || jsonStr.equals("[DONE]")) {
+                        String jsonStr = line.startsWith(OpenRouterConstants.SSE_DATA_PREFIX) 
+                                ? line.substring(OpenRouterConstants.SSE_DATA_PREFIX.length()) 
+                                : line;
+                        if (jsonStr.isEmpty() || jsonStr.equals(OpenRouterConstants.STREAM_DONE_MARKER)) {
                             return "";
                         }
                         JsonNode root = objectMapper.readTree(jsonStr);
@@ -164,6 +120,7 @@ public class OpenRouterServiceImpl implements OpenRouterService {
                         }
                         return "";
                     } catch (Exception e) {
+                        logger.debug("Failed to parse streaming chunk: {}", e.getMessage());
                         return "";
                     }
                 })
@@ -177,7 +134,7 @@ public class OpenRouterServiceImpl implements OpenRouterService {
     public List<Map<String, Object>> getAvailableModels() {
         try {
             Map<String, Object> response = webClient.get()
-                    .uri("/models")
+                    .uri(OpenRouterConstants.MODELS_ENDPOINT)
                     .retrieve()
                     .bodyToMono(Map.class)
                     .block();
@@ -208,7 +165,7 @@ public class OpenRouterServiceImpl implements OpenRouterService {
                             Object inputModalities = architecture.get("input_modalities");
                             if (inputModalities instanceof List) {
                                 List<String> modalities = (List<String>) inputModalities;
-                                supportsVision = modalities.contains("image");
+                                supportsVision = modalities.contains(OpenRouterConstants.CONTENT_TYPE_IMAGE);
                             }
                         }
                     }
@@ -219,7 +176,7 @@ public class OpenRouterServiceImpl implements OpenRouterService {
                 return processedModels;
             }
         } catch (Exception e) {
-            System.err.println("Failed to fetch models from OpenRouter: " + e.getMessage());
+            logger.error("Failed to fetch models from OpenRouter: {}", e.getMessage(), e);
         }
 
         List<Map<String, Object>> freeModels = new ArrayList<>();

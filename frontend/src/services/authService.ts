@@ -1,5 +1,5 @@
 import apiClient from '@/utils/apiClient';
-import type { AuthResponse, LoginRequest, RegisterRequest } from '@/types';
+import type { AuthResponse, LoginRequest, RegisterRequest, User } from '@/types';
 
 export const authService = {
   async login(credentials: LoginRequest): Promise<AuthResponse> {
@@ -21,7 +21,7 @@ export const authService = {
     return localStorage.getItem('token');
   },
 
-  getUser(): any | null {
+  getUser(): User | null {
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
   },

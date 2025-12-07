@@ -39,7 +39,7 @@ public class ConversationServiceImpl implements ConversationService {
 
         Conversation conversation = new Conversation();
         conversation.setUser(user);
-        conversation.setTitle("New Conversation");
+        conversation.setTitle(com.madlen.chat.util.Constants.DEFAULT_CONVERSATION_TITLE);
         conversation = conversationRepository.save(conversation);
 
         return convertToDto(conversation);

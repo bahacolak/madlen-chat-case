@@ -2,6 +2,8 @@ package com.madlen.chat.exception;
 
 import com.madlen.chat.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -16,6 +18,8 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
@@ -104,11 +108,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
             Exception ex, HttpServletRequest request) {
-        ex.printStackTrace();
-        System.err.println("Exception occurred: " + ex.getClass().getName());
-        System.err.println("Message: " + ex.getMessage());
+        logger.error("Unhandled exception occurred: {} - {}", 
+                ex.getClass().getName(), 
+                ex.getMessage(), 
+                ex);
+        
         if (ex.getCause() != null) {
-            System.err.println("Cause: " + ex.getCause().getMessage());
+            logger.error("Caused by: {}", ex.getCause().getMessage());
         }
 
         ErrorResponse error = new ErrorResponse(

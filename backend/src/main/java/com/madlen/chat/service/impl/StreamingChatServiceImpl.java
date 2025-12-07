@@ -1,7 +1,6 @@
 package com.madlen.chat.service.impl;
 
 import com.madlen.chat.dto.ChatRequest;
-import com.madlen.chat.dto.ConversationDto;
 import com.madlen.chat.exception.ResourceNotFoundException;
 import com.madlen.chat.model.Conversation;
 import com.madlen.chat.model.Message;
@@ -10,6 +9,10 @@ import com.madlen.chat.repository.MessageRepository;
 import com.madlen.chat.service.ConversationService;
 import com.madlen.chat.service.OpenRouterService;
 import com.madlen.chat.service.StreamingChatService;
+import com.madlen.chat.util.Constants;
+import com.madlen.chat.util.ConversationHelper;
+import com.madlen.chat.util.MessageFactory;
+import com.madlen.chat.util.MessageHistoryBuilder;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
@@ -21,9 +24,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -63,7 +64,8 @@ public class StreamingChatServiceImpl implements StreamingChatService {
 
             saveUserMessage(request, conversation);
 
-            List<Map<String, String>> history = buildMessageHistory(conversationId);
+            List<Map<String, String>> history = MessageHistoryBuilder.buildMessageHistory(
+                    conversationId, messageRepository);
             span.setAttribute("historySize", history.size());
 
             StringBuilder fullResponse = new StringBuilder();
@@ -104,40 +106,18 @@ public class StreamingChatServiceImpl implements StreamingChatService {
     }
 
     private Conversation getOrCreateConversation(ChatRequest request, Long userId) {
-        if (request.getConversationId() != null) {
-            return conversationRepository.findByIdAndUserId(request.getConversationId(), userId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Conversation", request.getConversationId()));
-        } else {
-            ConversationDto newConv = conversationService.createConversation(userId);
-            return conversationRepository.findById(newConv.getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Conversation", newConv.getId()));
-        }
+        return ConversationHelper.getOrCreateConversation(
+                request, userId, conversationRepository, conversationService);
     }
 
     private void saveUserMessage(ChatRequest request, Conversation conversation) {
-        Message userMessage = new Message();
-        userMessage.setConversation(conversation);
-        userMessage.setRole(Message.MessageRole.USER);
-        userMessage.setContent(request.getMessage());
-        userMessage.setModel(request.getModel());
-        if (request.getImage() != null && !request.getImage().isEmpty()) {
-            userMessage.setImageUrl("data:image/jpeg;base64," + request.getImage());
-        }
+        Message userMessage = MessageFactory.createUserMessage(
+                conversation,
+                request.getMessage(),
+                request.getModel(),
+                request.getImage()
+        );
         messageRepository.save(userMessage);
-    }
-
-    private List<Map<String, String>> buildMessageHistory(Long conversationId) {
-        List<Message> messages = messageRepository.findByConversationIdOrderByCreatedAtAsc(conversationId);
-        List<Map<String, String>> history = new ArrayList<>();
-
-        for (Message message : messages) {
-            Map<String, String> msgMap = new HashMap<>();
-            msgMap.put("role", message.getRole().name().toLowerCase());
-            msgMap.put("content", message.getContent());
-            history.add(msgMap);
-        }
-
-        return history;
     }
 
     private Flux<ServerSentEvent<String>> createContentStream(
@@ -147,8 +127,10 @@ public class StreamingChatServiceImpl implements StreamingChatService {
             StringBuilder fullResponse,
             AtomicReference<Long> messageIdRef) {
 
-        boolean testMode = request.getMessage() != null && request.getMessage().startsWith("/test ");
-        String testMessage = testMode ? request.getMessage().substring(6) : null;
+        boolean testMode = request.getMessage() != null && request.getMessage().startsWith(Constants.TEST_MESSAGE_PREFIX);
+        String testMessage = testMode 
+                ? request.getMessage().substring(Constants.TEST_MESSAGE_PREFIX.length()) 
+                : null;
 
         if (testMode) {
             return createTestStream(testMessage, request.getModel(), conversationId, fullResponse, messageIdRef);
@@ -232,21 +214,12 @@ public class StreamingChatServiceImpl implements StreamingChatService {
 
         Conversation conv = conversationRepository.findById(conversationId).orElse(null);
         if (conv != null) {
-            Message assistantMessage = new Message();
-            assistantMessage.setConversation(conv);
-            assistantMessage.setRole(Message.MessageRole.ASSISTANT);
-            assistantMessage.setContent(content);
-            assistantMessage.setModel(model);
+            Message assistantMessage = MessageFactory.createAssistantMessage(conv, content, model);
             Message saved = messageRepository.save(assistantMessage);
             messageIdRef.set(saved.getId());
 
-            if (conv.getTitle().equals("New Conversation")) {
-                String title = titleSource != null && titleSource.length() > 50
-                        ? titleSource.substring(0, 50) + "..."
-                        : (titleSource != null ? titleSource : "New Conversation");
-                conv.setTitle(title);
-                conversationRepository.save(conv);
-            }
+            ConversationHelper.updateConversationTitleIfNeeded(
+                    conv, titleSource, conversationRepository);
         }
     }
 }

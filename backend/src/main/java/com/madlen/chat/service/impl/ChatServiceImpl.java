@@ -2,7 +2,6 @@ package com.madlen.chat.service.impl;
 
 import com.madlen.chat.dto.ChatRequest;
 import com.madlen.chat.dto.ChatResponse;
-import com.madlen.chat.dto.ConversationDto;
 import com.madlen.chat.exception.ResourceNotFoundException;
 import com.madlen.chat.model.Conversation;
 import com.madlen.chat.model.Message;
@@ -13,14 +12,16 @@ import com.madlen.chat.repository.UserRepository;
 import com.madlen.chat.service.ChatService;
 import com.madlen.chat.service.ConversationService;
 import com.madlen.chat.service.OpenRouterService;
+import com.madlen.chat.util.Constants;
+import com.madlen.chat.util.ConversationHelper;
+import com.madlen.chat.util.MessageFactory;
+import com.madlen.chat.util.MessageHistoryBuilder;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -58,113 +59,22 @@ public class ChatServiceImpl implements ChatService {
                 .startSpan();
         
         try (Scope scope = span.makeCurrent()) {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+            validateUser(userId);
             
-            Conversation conversation;
-            if (request.getConversationId() != null) {
-                Span dbSpan = tracer.spanBuilder("db.get_conversation")
-                        .setAttribute("conversation.id", request.getConversationId())
-                        .startSpan();
-                try {
-                    conversation = conversationRepository.findByIdAndUserId(request.getConversationId(), userId)
-                            .orElseThrow(() -> new ResourceNotFoundException("Conversation", request.getConversationId()));
-                    dbSpan.setAttribute("success", true);
-                } catch (Exception e) {
-                    dbSpan.recordException(e);
-                    dbSpan.setAttribute("success", false);
-                    throw e;
-                } finally {
-                    dbSpan.end();
-                }
-            } else {
-                ConversationDto newConv = conversationService.createConversation(userId);
-                conversation = conversationRepository.findById(newConv.getId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Conversation", newConv.getId()));
-                span.setAttribute("conversation.created", true);
-            }
-            
+            Conversation conversation = getOrCreateConversation(request, userId, span);
             span.setAttribute("conversation.id", conversation.getId());
             
-            List<Map<String, String>> history = buildMessageHistory(conversation.getId());
+            List<Map<String, String>> history = MessageHistoryBuilder.buildMessageHistory(
+                    conversation.getId(), messageRepository);
             span.setAttribute("history.size", history.size());
             
-            Span apiSpan = tracer.spanBuilder("openrouter.api_call")
-                    .setAttribute("model", request.getModel())
-                    .setAttribute("message.length", request.getMessage().length())
-                    .startSpan();
-            String response;
-            try {
-                response = openRouterService.sendChatMessage(
-                        request.getMessage(),
-                        request.getModel(),
-                        history,
-                        request.getImage()
-                );
-                apiSpan.setAttribute("response.length", response.length());
-                apiSpan.setAttribute("success", true);
-            } catch (Exception e) {
-                apiSpan.recordException(e);
-                apiSpan.setAttribute("success", false);
-                throw e;
-            } finally {
-                apiSpan.end();
-            }
+            String response = callOpenRouterAPI(request, history, span);
             
-            Span saveSpan = tracer.spanBuilder("db.save_message")
-                    .setAttribute("role", "USER")
-                    .startSpan();
-            Message userMessage;
-            try {
-                userMessage = new Message();
-                userMessage.setConversation(conversation);
-                userMessage.setRole(Message.MessageRole.USER);
-                userMessage.setContent(request.getMessage());
-                userMessage.setModel(request.getModel());
-                if (request.getImage() != null && !request.getImage().isEmpty()) {
-                    userMessage.setImageUrl("data:image/jpeg;base64," + request.getImage());
-                }
-                userMessage = messageRepository.save(userMessage);
-                saveSpan.setAttribute("message.id", userMessage.getId());
-                saveSpan.setAttribute("success", true);
-            } catch (Exception e) {
-                saveSpan.recordException(e);
-                saveSpan.setAttribute("success", false);
-                throw e;
-            } finally {
-                saveSpan.end();
-            }
+            Message userMessage = saveUserMessage(request, conversation, span);
+            Message assistantMessage = saveAssistantMessage(conversation, response, request.getModel(), span);
             
-            Span saveResponseSpan = tracer.spanBuilder("db.save_message")
-                    .setAttribute("role", "ASSISTANT")
-                    .startSpan();
-            Message assistantMessage;
-            try {
-                assistantMessage = new Message();
-                assistantMessage.setConversation(conversation);
-                assistantMessage.setRole(Message.MessageRole.ASSISTANT);
-                assistantMessage.setContent(response);
-                assistantMessage.setModel(request.getModel());
-                assistantMessage = messageRepository.save(assistantMessage);
-                saveResponseSpan.setAttribute("message.id", assistantMessage.getId());
-                saveResponseSpan.setAttribute("success", true);
-            } catch (Exception e) {
-                saveResponseSpan.recordException(e);
-                saveResponseSpan.setAttribute("success", false);
-                throw e;
-            } finally {
-                saveResponseSpan.end();
-            }
-            
-            List<Message> conversationMessages = conversation.getMessages();
-            if (conversation.getTitle().equals("New Conversation") && 
-                (conversationMessages == null || conversationMessages.size() <= 2)) {
-                String title = request.getMessage().length() > 50 
-                        ? request.getMessage().substring(0, 50) + "..."
-                        : request.getMessage();
-                conversation.setTitle(title);
-                conversationRepository.save(conversation);
-            }
+            ConversationHelper.updateConversationTitleIfNeeded(
+                    conversation, request.getMessage(), conversationRepository);
             
             span.setAttribute("success", true);
             return new ChatResponse(response, conversation.getId(), assistantMessage.getId());
@@ -177,18 +87,90 @@ public class ChatServiceImpl implements ChatService {
         }
     }
     
-    private List<Map<String, String>> buildMessageHistory(Long conversationId) {
-        List<Message> messages = messageRepository.findByConversationIdOrderByCreatedAtAsc(conversationId);
-        List<Map<String, String>> history = new ArrayList<>();
+    private void validateUser(Long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+    }
+    
+    private Conversation getOrCreateConversation(ChatRequest request, Long userId, Span parentSpan) {
+        Conversation conversation = ConversationHelper.getOrCreateConversation(
+                request, userId, conversationRepository, conversationService);
         
-        for (Message message : messages) {
-            Map<String, String> msgMap = new HashMap<>();
-            msgMap.put("role", message.getRole().name().toLowerCase());
-            msgMap.put("content", message.getContent());
-            history.add(msgMap);
+        if (request.getConversationId() == null) {
+            parentSpan.setAttribute("conversation.created", true);
         }
         
-        return history;
+        return conversation;
+    }
+    
+    private String callOpenRouterAPI(ChatRequest request, List<Map<String, String>> history, Span parentSpan) {
+        Span apiSpan = tracer.spanBuilder("openrouter.api_call")
+                .setAttribute("model", request.getModel())
+                .setAttribute("message.length", request.getMessage().length())
+                .startSpan();
+        
+        try {
+            String response = openRouterService.sendChatMessage(
+                    request.getMessage(),
+                    request.getModel(),
+                    history,
+                    request.getImage()
+            );
+            apiSpan.setAttribute("response.length", response.length());
+            apiSpan.setAttribute("success", true);
+            return response;
+        } catch (Exception e) {
+            apiSpan.recordException(e);
+            apiSpan.setAttribute("success", false);
+            throw e;
+        } finally {
+            apiSpan.end();
+        }
+    }
+    
+    private Message saveUserMessage(ChatRequest request, Conversation conversation, Span parentSpan) {
+        Span saveSpan = tracer.spanBuilder("db.save_message")
+                .setAttribute("role", "USER")
+                .startSpan();
+        
+        try {
+            Message userMessage = MessageFactory.createUserMessage(
+                    conversation,
+                    request.getMessage(),
+                    request.getModel(),
+                    request.getImage()
+            );
+            userMessage = messageRepository.save(userMessage);
+            saveSpan.setAttribute("message.id", userMessage.getId());
+            saveSpan.setAttribute("success", true);
+            return userMessage;
+        } catch (Exception e) {
+            saveSpan.recordException(e);
+            saveSpan.setAttribute("success", false);
+            throw e;
+        } finally {
+            saveSpan.end();
+        }
+    }
+    
+    private Message saveAssistantMessage(Conversation conversation, String response, String model, Span parentSpan) {
+        Span saveResponseSpan = tracer.spanBuilder("db.save_message")
+                .setAttribute("role", "ASSISTANT")
+                .startSpan();
+        
+        try {
+            Message assistantMessage = MessageFactory.createAssistantMessage(conversation, response, model);
+            assistantMessage = messageRepository.save(assistantMessage);
+            saveResponseSpan.setAttribute("message.id", assistantMessage.getId());
+            saveResponseSpan.setAttribute("success", true);
+            return assistantMessage;
+        } catch (Exception e) {
+            saveResponseSpan.recordException(e);
+            saveResponseSpan.setAttribute("success", false);
+            throw e;
+        } finally {
+            saveResponseSpan.end();
+        }
     }
 }
 

@@ -5,10 +5,10 @@ import com.madlen.chat.dto.ChatResponse;
 import com.madlen.chat.dto.ModelInfo;
 import com.madlen.chat.service.ChatService;
 import com.madlen.chat.service.OpenRouterService;
+import com.madlen.chat.util.AuthenticationHelper;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,7 +34,7 @@ public class ChatController {
     @PostMapping("/chat")
     public ResponseEntity<ChatResponse> sendMessage(@Valid @RequestBody ChatRequest request,
                                                    Authentication authentication) {
-        Long userId = getUserIdFromAuthentication(authentication);
+        Long userId = AuthenticationHelper.getUserIdFromAuthentication(authentication, userService);
         ChatResponse response = chatService.sendMessage(request, userId);
         return ResponseEntity.ok(response);
     }
@@ -51,11 +51,6 @@ public class ChatController {
                 })
                 .collect(Collectors.toList());
         return ResponseEntity.ok(modelInfos);
-    }
-    
-    private Long getUserIdFromAuthentication(Authentication authentication) {
-        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        return userService.findByUsername(username).getId();
     }
 }
 
