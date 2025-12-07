@@ -7,13 +7,12 @@ export const modelService = {
       const response = await apiClient.get<ModelInfo[]>('/models');
       return response.data;
     } catch (error) {
-      // Fallback to free models if API fails
       return [
-        { id: 'meta-llama/llama-3.2-3b-instruct:free', name: 'Meta Llama 3.2 3B (Free)', free: true },
-        { id: 'qwen/qwen-2.5-7b-instruct:free', name: 'Qwen 2.5 7B (Free)', free: true },
-        { id: 'google/gemini-flash-1.5', name: 'Google Gemini Flash 1.5', free: false },
+        { id: 'meta-llama/llama-3.2-3b-instruct:free', name: 'Meta Llama 3.2 3B (Free)', free: true, supportsVision: false },
+        { id: 'amazon/nova-2-lite-v1:free', name: 'Amazon Nova 2 Lite (Free)', free: true, supportsVision: true },
+        { id: 'google/gemma-3-4b-it:free', name: 'Google Gemma 3 4B (ImageFree)', free: true, supportsVision: false, generatesImages: true },
+        { id: 'openai/gpt-oss-20b:free', name: 'OpenAI GPT-OSS 20B (Free)', free: true, supportsVision: false },
       ];
     }
   },
 };
-

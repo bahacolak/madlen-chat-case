@@ -138,7 +138,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading, i
                     ),
                   }}
                 >
-                  {message.content}
+                  {message.content.replace(/<br\s*\/?>/gi, '\n')}
                 </ReactMarkdown>
               </div>
 

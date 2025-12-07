@@ -133,7 +133,10 @@ export const ChatInterface: React.FC = () => {
           image,
         },
         (chunk: string) => {
-          if (!firstChunkReceived && chunk.trim().length > 0) {
+          // Clean HTML br tags from model responses
+          const cleanedChunk = chunk.replace(/<br\s*\/?>/gi, '\n');
+
+          if (!firstChunkReceived && cleanedChunk.trim().length > 0) {
             setIsThinking(false);
             setIsLoading(false);
             firstChunkReceived = true;
@@ -142,7 +145,7 @@ export const ChatInterface: React.FC = () => {
           setMessages((prev) =>
             prev.map((msg) =>
               msg.id === streamingMessageId
-                ? { ...msg, content: msg.content + chunk }
+                ? { ...msg, content: msg.content + cleanedChunk }
                 : msg
             )
           );
@@ -313,6 +316,8 @@ export const ChatInterface: React.FC = () => {
             onSendMessage={handleSendMessage}
             isLoading={isLoading}
             disabled={!selectedModel}
+            selectedModelSupportsVision={models.find(m => m.id === selectedModel)?.supportsVision ?? false}
+            selectedModelGeneratesImages={selectedModel?.toLowerCase().includes('gemma') ?? false}
           />
         </div>
       </div>

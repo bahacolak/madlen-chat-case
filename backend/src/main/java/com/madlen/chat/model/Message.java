@@ -31,7 +31,7 @@ public class Message {
     @Column(nullable = false)
     private String model;
 
-    @Column(name = "image_url")
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -46,4 +46,3 @@ public class Message {
         USER, ASSISTANT
     }
 }
-

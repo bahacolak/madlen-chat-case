@@ -28,7 +28,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
       >
         {models.map((model) => (
           <option key={model.id} value={model.id} className="bg-zinc-900">
-            {model.name} {model.free && '(Free)'}
+            {model.supportsVision && '👁️ '}{model.name}{model.free && !model.name.includes('Free') && ' (Free)'}
           </option>
         ))}
       </select>

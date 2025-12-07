@@ -10,9 +10,11 @@ interface StreamCallbacks {
   onError: (error: string) => void;
 }
 
+interface StreamState {
+  hasCompleted: boolean;
+}
 
-
-const readStream = async (reader: ReadableStreamDefaultReader<Uint8Array>, callbacks: StreamCallbacks) => {
+const readStream = async (reader: ReadableStreamDefaultReader<Uint8Array>, callbacks: StreamCallbacks, state: StreamState) => {
   const decoder = new TextDecoder();
   let buffer = '';
   let currentEvent = '';
@@ -51,6 +53,7 @@ const readStream = async (reader: ReadableStreamDefaultReader<Uint8Array>, callb
           try {
             const json = JSON.parse(data);
             if (json.messageId) {
+              state.hasCompleted = true;
               callbacks.onComplete(json.conversationId, json.messageId);
             } else if (json.conversationId) {
               callbacks.onInit(json.conversationId);
@@ -112,7 +115,16 @@ export const chatService = {
       const reader = response.body?.getReader();
       if (!reader) throw new Error('No response body');
 
-      await readStream(reader, callbacks);
+      const state: StreamState = { hasCompleted: false };
+
+      try {
+        await readStream(reader, callbacks, state);
+      } catch (readError) {
+        // If stream already completed successfully, ignore connection close errors
+        if (!state.hasCompleted) {
+          throw readError;
+        }
+      }
     } catch (error) {
       onError(error instanceof Error ? error.message : 'Streaming failed');
     }

@@ -206,6 +206,21 @@ public class OpenRouterServiceImpl implements OpenRouterService {
                         }
                     }
                     processedModel.put("free", isFree);
+
+                    boolean supportsVision = false;
+                    if (model.containsKey("architecture")) {
+                        Object archObj = model.get("architecture");
+                        if (archObj instanceof Map) {
+                            Map<String, Object> architecture = (Map<String, Object>) archObj;
+                            Object inputModalities = architecture.get("input_modalities");
+                            if (inputModalities instanceof List) {
+                                List<String> modalities = (List<String>) inputModalities;
+                                supportsVision = modalities.contains("image");
+                            }
+                        }
+                    }
+                    processedModel.put("supportsVision", supportsVision);
+
                     processedModels.add(processedModel);
                 }
                 return processedModels;
@@ -215,12 +230,16 @@ public class OpenRouterServiceImpl implements OpenRouterService {
             System.err.println("Failed to fetch models from OpenRouter: " + e.getMessage());
         }
 
-        // Return verified free models that work
+        // Return verified free models that work (including vision models)
         List<Map<String, Object>> freeModels = new ArrayList<>();
         freeModels.add(Map.of("id", "meta-llama/llama-3.2-3b-instruct:free", "name", "Meta Llama 3.2 3B (Free)", "free",
-                true));
-        freeModels.add(Map.of("id", "amazon/nova-2-lite-v1:free", "name", "Amazon Nova 2 Lite (Free)", "free", true));
-        freeModels.add(Map.of("id", "openai/gpt-oss-20b:free", "name", "OpenAI GPT-OSS 20B (Free)", "free", true));
+                true, "supportsVision", false));
+        freeModels.add(Map.of("id", "amazon/nova-2-lite-v1:free", "name", "Amazon Nova 2 Lite (Free)", "free", true,
+                "supportsVision", true));
+        freeModels.add(Map.of("id", "google/gemma-3-4b-it:free", "name", "Google Gemma 3 4B (ImageFree)", "free", true,
+                "supportsVision", false));
+        freeModels.add(Map.of("id", "openai/gpt-oss-20b:free", "name", "OpenAI GPT-OSS 20B (Free)", "free", true,
+                "supportsVision", false));
         return freeModels;
     }
 }

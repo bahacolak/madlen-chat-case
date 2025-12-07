@@ -56,6 +56,8 @@ export interface ModelInfo {
   id: string;
   name: string;
   free: boolean;
+  supportsVision?: boolean;
+  generatesImages?: boolean;
 }
 
 export interface ErrorResponse {
