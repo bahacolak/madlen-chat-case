@@ -37,6 +37,21 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/models").permitAll()
+                // NOT: Actuator endpoints public erişime açık (case study için)
+                // Spring Boot Actuator, uygulama sağlığı, metrikler, environment bilgileri gibi
+                // sensitive bilgileri expose eder. Production ortamında güvenlik riski oluşturur.
+                // 
+                // Production'da şu şekilde korunmalıdır:
+                // 1. Sadece authenticated admin kullanıcılara aç:
+                //    .requestMatchers("/actuator/**").hasRole("ADMIN")
+                // 
+                // 2. Veya sadece health endpoint'i public bırak, diğerlerini koru:
+                //    .requestMatchers("/actuator/health").permitAll()
+                //    .requestMatchers("/actuator/**").hasRole("ADMIN")
+                // 
+                // 3. Veya production'da tamamen disable et (application-prod.yml):
+                //    management.endpoints.enabled-by-default=false
+                //    management.endpoint.health.enabled=true
                 .requestMatchers("/actuator/**").permitAll()
                 .anyRequest().authenticated()
             )
