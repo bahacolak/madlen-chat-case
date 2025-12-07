@@ -12,9 +12,20 @@ export const authService = {
     return response.data;
   },
 
-  logout(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  async logout(): Promise<void> {
+    try {
+      const token = this.getToken();
+      if (token) {
+        await apiClient.post('/auth/logout', {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+    } catch (error) {
+      console.error('Logout request failed:', error);
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
   },
 
   getToken(): string | null {

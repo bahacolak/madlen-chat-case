@@ -31,6 +31,20 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: chat-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: redis-server --appendonly yes
+
   backend:
     build:
       context: ./backend
@@ -47,11 +61,15 @@ services:
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
       - JAEGER_ENDPOINT=http://jaeger:4318
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-prod}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
     depends_on:
       postgres:
         condition: service_healthy
       jaeger:
         condition: service_started
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/api/models"]
       interval: 30s
@@ -74,4 +92,5 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
 

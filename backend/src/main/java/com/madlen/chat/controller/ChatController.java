@@ -6,7 +6,9 @@ import com.madlen.chat.dto.ModelInfo;
 import com.madlen.chat.service.ChatService;
 import com.madlen.chat.service.OpenRouterService;
 import com.madlen.chat.util.AuthenticationHelper;
+import com.madlen.chat.util.CacheConstants;
 import jakarta.validation.Valid;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -51,6 +53,12 @@ public class ChatController {
                 })
                 .collect(Collectors.toList());
         return ResponseEntity.ok(modelInfos);
+    }
+    
+    @PostMapping("/models/refresh")
+    @CacheEvict(value = CacheConstants.CACHE_MODELS, allEntries = true)
+    public ResponseEntity<String> refreshModelsCache() {
+        return ResponseEntity.ok("Models cache refreshed successfully");
     }
 }
 

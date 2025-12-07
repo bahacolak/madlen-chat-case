@@ -1,0 +1,23 @@
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  security:
+    jwt:
+      expiration: 86400000
+      secret: test-secret-key-for-testing-only-minimum-256-bits
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+  datasource:
+    url: jdbc:postgresql://localhost:5432/testdb
+    username: testuser
+    password: testpassword
+
+logging:
+  level:
+    com.madlen.chat: DEBUG
+    org.springframework.data.redis: DEBUG
+    org.springframework.cache: DEBUG

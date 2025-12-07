@@ -4,11 +4,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.madlen.chat.exception.OpenRouterException;
 import com.madlen.chat.service.OpenRouterService;
+import com.madlen.chat.util.CacheConstants;
 import com.madlen.chat.util.OpenRouterConstants;
 import com.madlen.chat.util.OpenRouterRequestBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -131,6 +133,7 @@ public class OpenRouterServiceImpl implements OpenRouterService {
     }
 
     @Override
+    @Cacheable(value = CacheConstants.CACHE_MODELS)
     public List<Map<String, Object>> getAvailableModels() {
         try {
             Map<String, Object> response = webClient.get()

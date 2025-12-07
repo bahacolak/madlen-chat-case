@@ -1,5 +1,6 @@
 package com.madlen.chat.security;
 
+import com.madlen.chat.service.TokenCacheService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -19,6 +20,12 @@ public class JwtTokenProvider {
     @Value("${spring.security.jwt.expiration}")
     private long jwtExpiration;
     
+    private final TokenCacheService tokenCacheService;
+    
+    public JwtTokenProvider(TokenCacheService tokenCacheService) {
+        this.tokenCacheService = tokenCacheService;
+    }
+    
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
@@ -27,12 +34,15 @@ public class JwtTokenProvider {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
         
-        return Jwts.builder()
+        String token = Jwts.builder()
                 .subject(username)
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(getSigningKey())
                 .compact();
+        
+        tokenCacheService.cacheToken(token);
+        return token;
     }
     
     public String getUsernameFromToken(String token) {
@@ -47,6 +57,10 @@ public class JwtTokenProvider {
     
     public boolean validateToken(String token) {
         try {
+            if (!tokenCacheService.isTokenCached(token)) {
+                return false;
+            }
+            
             Jwts.parser()
                     .verifyWith(getSigningKey())
                     .build()
@@ -55,6 +69,10 @@ public class JwtTokenProvider {
         } catch (Exception e) {
             return false;
         }
+    }
+    
+    public void invalidateToken(String token) {
+        tokenCacheService.invalidateToken(token);
     }
 }
 

@@ -8,6 +8,9 @@ import com.madlen.chat.model.User;
 import com.madlen.chat.repository.ConversationRepository;
 import com.madlen.chat.repository.UserRepository;
 import com.madlen.chat.service.ConversationService;
+import com.madlen.chat.util.CacheConstants;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -33,6 +36,7 @@ public class ConversationServiceImpl implements ConversationService {
 
     @Override
     @Transactional
+    @CacheEvict(value = CacheConstants.CACHE_CONVERSATIONS, key = "#userId")
     public ConversationDto createConversation(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", userId));
@@ -46,6 +50,7 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
+    @Cacheable(value = CacheConstants.CACHE_CONVERSATIONS, key = "#userId")
     public List<ConversationDto> getUserConversations(Long userId) {
         List<Conversation> conversations = conversationRepository.findByUserIdOrderByUpdatedAtDesc(userId);
         return conversations.stream()
@@ -69,6 +74,7 @@ public class ConversationServiceImpl implements ConversationService {
 
     @Override
     @Transactional
+    @CacheEvict(value = CacheConstants.CACHE_CONVERSATIONS, key = "#userId")
     public void deleteConversation(Long conversationId, Long userId) {
         conversationRepository.deleteByIdAndUserId(conversationId, userId);
     }

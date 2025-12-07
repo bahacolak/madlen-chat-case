@@ -112,4 +112,9 @@ public class AuthServiceImpl implements AuthService {
             span.end();
         }
     }
+
+    @Override
+    public void logout(String token) {
+        tokenProvider.invalidateToken(token);
+    }
 }
